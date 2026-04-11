@@ -27,7 +27,7 @@ export default function CurrencyScreen() {
       await settingsService.update({ currency: currency.code, currencySymbol: currency.symbol })
       router.replace('/(tabs)/records')
     } catch (e) {
-      console.error(e)
+      // silently ignore — currency is not critical for onboarding flow
     } finally {
       setLoading(false)
     }

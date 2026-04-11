@@ -27,20 +27,22 @@ const TYPE_TABS = [
   { value: 'transfer' as TxType, label: 'Transfer' },
 ]
 
-const TYPE_COLORS: Record<TxType, string> = {
-  expense:  Colors.expense,
-  income:   Colors.income,
-  transfer: Colors.transfer,
-}
 
-const TYPE_BG: Record<TxType, string> = {
-  expense:  Colors.expenseLight,
-  income:   Colors.incomeLight,
-  transfer: Colors.transferLight,
-}
 
 export default function EditTransactionScreen() {
   const Colors = useColors()
+
+  const TYPE_COLORS: Record<TxType, string> = {
+    expense:  Colors.expense,
+    income:   Colors.income,
+    transfer: Colors.transfer,
+  }
+  const TYPE_BG: Record<TxType, string> = {
+    expense:  Colors.expenseLight,
+    income:   Colors.incomeLight,
+    transfer: Colors.transferLight,
+  }
+
   const { id } = useLocalSearchParams<{ id: string }>()
 
 

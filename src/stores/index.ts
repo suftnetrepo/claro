@@ -3,6 +3,7 @@ import { subMonths, addMonths } from 'date-fns'
 import * as SecureStore     from 'expo-secure-store'
 import type { Account, Category, Transaction, Budget, Settings } from '../db/schema'
 import type { ThemeKey }    from '../constants/themes'
+import type { PremiumPlan } from '../services/premiumService'
 
 // ─── Auth store ───────────────────────────────────────────────────────────────
 
@@ -130,7 +131,6 @@ export const useThemeStore = create<ThemeState>((set) => ({
 
 // ─── Premium store ────────────────────────────────────────────────────────────
 
-import type { PremiumPlan } from '../services/premiumService'
 
 interface PremiumState {
   isPremium:    boolean

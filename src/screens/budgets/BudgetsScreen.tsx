@@ -9,7 +9,7 @@ import { dialogueService, toastService } from 'fluent-styles'
 import { format } from 'date-fns'
 import { ChevronLeftIcon, ChevronRightIcon } from '../../icons'
 import { IconCircle } from '../../icons/map'
-import { Colors, useColors } from '../../constants'
+import { useColors } from '../../constants'
 import { usePremium } from '../../hooks/usePremium'
 import { PremiumBanner } from '../premium/PremiumGate'
 import { useBudgets, useSettings } from '../../hooks'
@@ -133,6 +133,14 @@ export default function BudgetsScreen() {
               </StyledCard>
             )}
 
+            {/* Premium banner when at limit */}
+            {!premium.canAddBudget((data ?? []).length) && (
+              <PremiumBanner
+                message={`Free plan: ${premium.limits.BUDGETS} budget max`}
+                subtext="Upgrade for unlimited budgets"
+              />
+            )}
+
             {/* Unbudgeted categories */}
             {unbudgetedCategories.length > 0 && (
               <StyledCard marginHorizontal={16} marginBottom={16} padding={16} borderRadius={16} backgroundColor={Colors.bgCard} borderWidth={1} borderColor={Colors.border}>
@@ -146,13 +154,16 @@ export default function BudgetsScreen() {
                       <StyledText flex={1} fontSize={14} fontWeight="600" color={Colors.textPrimary}>{cat.name}</StyledText>
                       <StyledPressable
                         paddingHorizontal={12} paddingVertical={7}
-                        borderRadius={8} borderWidth={1} borderColor={Colors.primary}
-                        onPress={() => router.push({
-                          pathname: '/set-budget' as any,
-                          params: { categoryId: cat.id, categoryName: cat.name, categoryIcon: cat.icon, categoryColor: cat.color },
-                        })}
+                        borderRadius={8} borderWidth={1}
+                        borderColor={premium.canAddBudget((data ?? []).length) ? Colors.primary : Colors.textMuted}
+                        onPress={() => premium.canAddBudget((data ?? []).length)
+                          ? router.push({ pathname: '/set-budget' as any, params: { categoryId: cat.id, categoryName: cat.name, categoryIcon: cat.icon, categoryColor: cat.color } })
+                          : router.push('/premium' as any)}
                       >
-                        <StyledText fontSize={11} fontWeight="700" color={Colors.primary}>SET BUDGET</StyledText>
+                        <StyledText fontSize={11} fontWeight="700"
+                          color={premium.canAddBudget((data ?? []).length) ? Colors.primary : Colors.textMuted}>
+                          {premium.canAddBudget((data ?? []).length) ? 'SET BUDGET' : '🔒 PREMIUM'}
+                        </StyledText>
                       </StyledPressable>
                     </Stack>
                     {i < unbudgetedCategories.length - 1 && <StyledDivider borderBottomColor={Colors.border} />}

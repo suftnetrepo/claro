@@ -4,14 +4,13 @@ import {
   Stack, StyledText, StyledPressable, StyledTextInput,
   StyledScrollView, StyledDivider,
 } from 'fluent-styles'
-import { Colors, useColors } from '../../constants'
-import { dialogueService, toastService, loaderService } from 'fluent-styles'
+import { useColors } from '../../constants'
+import { toastService, loaderService } from 'fluent-styles'
 import { ALL_ACCOUNT_ICON_KEYS } from '../../icons/map'
 import { ModalHeader, ColorPicker, IconPicker } from '../../components'
 import { useAccounts } from '../../hooks'
 import { useRecordsStore } from '../../stores'
 import { IconCircle } from '../../icons/map'
-import { Calculator } from './Calculator'
 import { AccountColors } from '../../constants'
 
 // ─── Mode: add or edit ────────────────────────────────────────────────────────
@@ -22,8 +21,6 @@ export default function AddAccountScreen() {
     id?: string; name?: string; icon?: string; color?: string; balance?: string
   }>()
   const isEdit   = !!params.id
-
-
 
   const { create, update, remove } = useAccounts()
   const { invalidateData }         = useRecordsStore()

@@ -3,8 +3,13 @@ import * as SQLite from 'expo-sqlite'
 import * as schema from './schema'
 import { SQL_MIGRATIONS } from './migrations'
 
-// expo-sqlite v15 uses openDatabaseSync
 const sqlite = SQLite.openDatabaseSync('claro.db')
+
+// Enable foreign key enforcement — SQLite disables FK checks by default.
+// Without this, onDelete: 'cascade' in the schema is silently ignored,
+// meaning deleting an account leaves orphaned transactions in the DB.
+sqlite.execSync('PRAGMA foreign_keys = ON;')
+
 export const db = drizzle(sqlite, { schema })
 
 export const runMigrations = async (): Promise<void> => {

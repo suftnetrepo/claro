@@ -127,3 +127,23 @@ export const useThemeStore = create<ThemeState>((set) => ({
     } catch {}
   },
 }))
+
+// ─── Premium store ────────────────────────────────────────────────────────────
+
+import type { PremiumPlan } from '../services/premiumService'
+
+interface PremiumState {
+  isPremium:    boolean
+  plan:         PremiumPlan
+  loading:      boolean
+  setEntitlement: (active: boolean, plan: PremiumPlan) => void
+  setLoading:   (v: boolean) => void
+}
+
+export const usePremiumStore = create<PremiumState>((set) => ({
+  isPremium: false,
+  plan:      null,
+  loading:   true,
+  setEntitlement: (active, plan) => set({ isPremium: active, plan, loading: false }),
+  setLoading:     (v)            => set({ loading: v }),
+}))

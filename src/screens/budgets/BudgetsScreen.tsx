@@ -10,6 +10,8 @@ import { format } from 'date-fns'
 import { ChevronLeftIcon, ChevronRightIcon } from '../../icons'
 import { IconCircle } from '../../icons/map'
 import { Colors, useColors } from '../../constants'
+import { usePremium } from '../../hooks/usePremium'
+import { PremiumBanner } from '../premium/PremiumGate'
 import { useBudgets, useSettings } from '../../hooks'
 import { useRecordsStore } from '../../stores'
 import { formatCurrency } from '../../utils'
@@ -17,6 +19,7 @@ import { SwipeableRow } from '../../components'
 
 export default function BudgetsScreen() {
   const Colors = useColors()
+  const premium = usePremium()
   const { data: settingsData } = useSettings()
   const symbol   = settingsData?.currencySymbol ?? '$'
   const { selectedMonth, prevMonth, nextMonth, invalidateData } = useRecordsStore()

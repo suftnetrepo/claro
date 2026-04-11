@@ -15,8 +15,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.claro.finance",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Claro uses Face ID to keep your finances secure."
+        "NSFaceIDUsageDescription": "Claro uses Face ID to keep your finances secure.",
+        "NSCameraUsageDescription": "Claro uses the camera to scan receipts.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -24,7 +27,9 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#22713F"
       },
-      "package": "com.claro.finance"
+      "package": "com.claro.finance",
+      "versionCode": 1,
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/icon.png"
@@ -42,6 +47,11 @@
     "scheme": "claro",
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
     }
   }
 }

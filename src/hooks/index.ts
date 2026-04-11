@@ -14,3 +14,5 @@ export { useAnalysis }         from './useAnalysis'
 export type { TransactionWithRefs } from './useTransactions'
 export type { BudgetWithSpent }     from './useBudgets'
 export type { CategorySpending, AnalysisData, DailyTotal, MonthlyTotal } from './useAnalysis'
+
+export * from './usePremium'

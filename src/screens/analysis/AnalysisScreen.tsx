@@ -4,7 +4,6 @@ import {
   Stack, StyledText, StyledPressable, StyledCard,
   StyledDivider, StyledProgressBar,
   StyledSkeleton, StyledEmptyState, TabBar,
-  StyledBar
 } from 'fluent-styles'
 import { Dimensions } from 'react-native'
 import Svg, { Rect, Text as SvgText, G } from 'react-native-svg'

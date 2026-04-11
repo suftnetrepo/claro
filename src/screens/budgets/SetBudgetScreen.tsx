@@ -23,8 +23,6 @@ export default function SetBudgetScreen() {
     currentLimit?: string
   }>()
 
-
-
   const { data: settingsData }     = useSettings()
   const { create, update, remove } = useBudgets()
   const { selectedMonth, invalidateData } = useRecordsStore()

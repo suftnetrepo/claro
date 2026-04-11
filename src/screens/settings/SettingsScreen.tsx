@@ -12,9 +12,12 @@ import {
   DeleteIcon, TrendUpIcon, CalendarIcon, CopyIcon, BellIcon,
 } from '../../icons'
 import { Colors, useColors, CURRENCIES } from '../../constants'
+import { usePremium } from '../../hooks/usePremium'
+import { PREMIUM_THEMES } from '../../constants/premium'
 import { THEMES, THEME_META, type ThemeKey } from '../../constants/themes'
-import { useThemeStore } from '../../stores'
+import { useThemeStore, usePremiumStore } from '../../stores'
 import { exportCSV, exportJSON } from '../../services/exportService'
+import { clearEntitlement } from '../../services/premiumService'
 import { useSettings } from '../../hooks'
 import { useRecordsStore } from '../../stores'
 import {
@@ -138,6 +141,7 @@ const CurrencyPicker: React.FC<{
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function SettingsScreen() {
   const Colors = useColors()
+  const premium = usePremium()
   const { themeKey, setTheme } = useThemeStore()
   const { data: settings, update: updateSettings } = useSettings()
   const { invalidateData } = useRecordsStore()
@@ -198,6 +202,21 @@ export default function SettingsScreen() {
     router.push('/change-pin' as any)
   }, [])
 
+  // ─── Dev: reset premium (remove before production) ─────────────────────────
+  const handleResetPremium = useCallback(async () => {
+    const ok = await dialogueService.confirm({
+      title:        'Reset premium?',
+      message:      'This will remove your premium entitlement so you can test the paywall again.',
+      icon:         '🧪',
+      confirmLabel: 'Reset',
+      destructive:  true,
+    })
+    if (!ok) return
+    await clearEntitlement()
+    usePremiumStore.getState().setEntitlement(false, null)
+    toastService.info('Premium reset', 'App is now in free mode')
+  }, [])
+
   // ─── Reset PIN ─────────────────────────────────────────────────────────────
   const handleResetApp = useCallback(async () => {
     const ok = await dialogueService.confirm({
@@ -230,6 +249,57 @@ export default function SettingsScreen() {
       </Stack>
 
       <StyledScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+
+        {/* ── Premium ─────────────────────────────────────────────────── */}
+        {!premium.isPremium ? (
+          <StyledPressable
+            marginHorizontal={16} marginBottom={8}
+            borderRadius={20} overflow="hidden"
+            onPress={() => router.push('/premium' as any)}
+          >
+            <Stack
+              paddingVertical={18} paddingHorizontal={20}
+              borderRadius={20}
+              style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }}
+              backgroundColor="#6366F1"
+            >
+              <Stack horizontal alignItems="center" justifyContent="space-between">
+                <Stack gap={4}>
+                  <Stack horizontal alignItems="center" gap={8}>
+                    <StyledText fontSize={20}>⚡</StyledText>
+                    <StyledText fontSize={16} fontWeight="800" color="#fff">Upgrade to Premium</StyledText>
+                  </Stack>
+                  <StyledText fontSize={12} color="rgba(255,255,255,0.8)">
+                    Unlimited everything · All themes · Export
+                  </StyledText>
+                </Stack>
+                <Stack
+                  paddingVertical={8} paddingHorizontal={16}
+                  borderRadius={20} backgroundColor="rgba(255,255,255,0.2)"
+                >
+                  <StyledText fontSize={13} fontWeight="700" color="#fff">View →</StyledText>
+                </Stack>
+              </Stack>
+            </Stack>
+          </StyledPressable>
+        ) : (
+          <Stack
+            marginHorizontal={16} marginBottom={8}
+            paddingVertical={14} paddingHorizontal={20}
+            borderRadius={20} backgroundColor="#6366F115"
+            borderWidth={1} borderColor="#6366F130"
+            horizontal alignItems="center" gap={12}
+          >
+            <StyledText fontSize={22}>⚡</StyledText>
+            <Stack flex={1}>
+              <StyledText fontSize={14} fontWeight="700" color="#6366F1">Claro Premium</StyledText>
+              <StyledText fontSize={12} color={Colors.textMuted}>
+                {premium.plan === 'lifetime' ? 'Lifetime access' : `${premium.plan} subscription`}
+              </StyledText>
+            </Stack>
+            <StyledText fontSize={20}>✓</StyledText>
+          </Stack>
+        )}
 
         {/* ── Appearance ──────────────────────────────────────────────── */}
         <SectionHeader label="Appearance" />
@@ -372,17 +442,17 @@ export default function SettingsScreen() {
           overflow="hidden"
         >
           <SettingsRow
-            icon={<CalendarIcon size={20} color={Colors.primary} strokeWidth={2} />}
+            icon={<CalendarIcon size={20} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />}
             label={exporting ? 'Exporting…' : 'Export transactions'}
-            value="CSV"
-            onPress={handleExportCSV}
+            value={premium.canExport() ? 'CSV' : '🔒 Premium'}
+            onPress={() => premium.canExport() ? handleExportCSV() : router.push('/premium' as any)}
           />
           <StyledDivider borderBottomColor={Colors.border} marginLeft={62} />
           <SettingsRow
-            icon={<CopyIcon size={20} color={Colors.primary} strokeWidth={2} />}
+            icon={<CopyIcon size={20} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />}
             label={exporting ? 'Backing up…' : 'Backup all data'}
-            value="JSON"
-            onPress={handleExportJSON}
+            value={premium.canExport() ? 'JSON' : '🔒 Premium'}
+            onPress={() => premium.canExport() ? handleExportJSON() : router.push('/premium' as any)}
           />
         </StyledCard>
 
@@ -400,6 +470,17 @@ export default function SettingsScreen() {
             onPress={handleResetApp}
             danger
           />
+          {__DEV__ && (
+            <>
+              <StyledDivider borderBottomColor={Colors.border} />
+              <SettingsRow
+                icon={<StyledText fontSize={16}>🧪</StyledText>}
+                label="Reset premium (dev)"
+                onPress={handleResetPremium}
+                danger
+              />
+            </>
+          )}
         </StyledCard>
 
       </StyledScrollView>

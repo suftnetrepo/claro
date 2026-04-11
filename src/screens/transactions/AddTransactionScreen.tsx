@@ -3,13 +3,13 @@ import { Keyboard, ScrollView } from 'react-native'
 import { router } from 'expo-router'
 import {
   Stack, StyledText, StyledPressable, StyledTextInput,
-  theme, StyledDatePicker, Popup, TabBar,
+  StyledDatePicker, Popup,
 } from 'fluent-styles'
 import { toastService, loaderService } from 'fluent-styles'
 import { format } from 'date-fns'
-import { CalendarIcon, ChevronDownIcon, CheckIcon } from '../../icons'
+import { CalendarIcon, ChevronDownIcon } from '../../icons'
 import { IconCircle } from '../../icons/map'
-import { Colors, useColors } from '../../constants'
+import { useColors } from '../../constants'
 import { useTransactions, useAccounts, useCategories, useSettings } from '../../hooks'
 import { useRecordsStore } from '../../stores'
 import { Calculator } from './Calculator'
@@ -110,22 +110,37 @@ export default function AddTransactionScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
 
-        {/* ── Type selector — pill style ───────────────────────────── */}
+        {/* ── Type selector ───────────────────────────────────────── */}
         <Stack paddingHorizontal={20} paddingTop={20} paddingBottom={8}>
-          <TabBar
-            options={TYPE_TABS}
-            value={txType}
-            onChange={handleTypeChange}
-            indicator="pill"
-            height={44}
-            fontSize={14}
-            colors={{
-              background:  theme.colors.gray[100],
-              activeText:  Colors.white,
-              indicator:   accentColor,
-              text:        Colors.textSecondary,
-            }}
-          />
+          {/* Custom 3-button pill row — clear active color per type */}
+          <Stack horizontal borderRadius={14} overflow="hidden"
+            backgroundColor={Colors.bgMuted} padding={4} gap={4}>
+            {TYPE_TABS.map(t => {
+              const active = txType === t.value
+              const color  = TYPE_COLORS[t.value]
+              return (
+                <StyledPressable
+                  key={t.value}
+                  flex={1} paddingVertical={10} borderRadius={10}
+                  alignItems="center" justifyContent="center"
+                  backgroundColor={active ? color : 'transparent'}
+                  onPress={() => handleTypeChange(t.value)}
+                  style={active ? {
+                    shadowColor: color,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  } : undefined}
+                >
+                  <StyledText fontSize={14} fontWeight="700"
+                    color={active ? Colors.white : Colors.textSecondary}>
+                    {t.label}
+                  </StyledText>
+                </StyledPressable>
+              )
+            })}
+          </Stack>
         </Stack>
 
         {/* ── Amount input ─────────────────────────────────────────── */}
@@ -140,7 +155,7 @@ export default function AddTransactionScreen() {
         {/* ── Account pill ─────────────────────────────────────────── */}
         <Stack paddingHorizontal={20} marginBottom={14}>
           <StyledPressable
-            flexDirection='row' alignItems="center" justifyContent="center" gap={8}
+            flexDirection="row" alignItems="center" justifyContent="center" gap={8}
             paddingVertical={14} paddingHorizontal={20}
             borderRadius={30} borderWidth={1} borderColor={Colors.border}
             backgroundColor={Colors.bgCard}
@@ -160,7 +175,7 @@ export default function AddTransactionScreen() {
         {txType === 'transfer' && (
           <Stack paddingHorizontal={20} marginBottom={14}>
             <StyledPressable
-              flexDirection='row' alignItems="center" justifyContent="center" gap={8}
+              flexDirection="row" alignItems="center" justifyContent="center" gap={8}
               paddingVertical={14} paddingHorizontal={20}
               borderRadius={30} borderWidth={1} borderColor={Colors.border}
               backgroundColor={Colors.bgCard}
@@ -180,9 +195,8 @@ export default function AddTransactionScreen() {
         {/* ── Category + Date row ───────────────────────────────────── */}
         {txType !== 'transfer' && (
           <Stack horizontal paddingHorizontal={20} gap={12} marginBottom={14}>
-            {/* Category pill */}
             <StyledPressable
-              flex={1} flexDirection='row' alignItems="center" gap={8}
+              flex={1} flexDirection="row" alignItems="center" gap={8}
               paddingVertical={12} paddingHorizontal={14}
               borderRadius={16} borderWidth={1} borderColor={Colors.border}
               backgroundColor={Colors.bgCard}
@@ -198,9 +212,8 @@ export default function AddTransactionScreen() {
               <ChevronDownIcon size={14} color={Colors.textMuted} />
             </StyledPressable>
 
-            {/* Date pill */}
             <StyledPressable
-              flex={1} flexDirection='row' alignItems="center" gap={8}
+              flex={1} flexDirection="row" alignItems="center" gap={8}
               paddingVertical={12} paddingHorizontal={14}
               borderRadius={16} borderWidth={1} borderColor={Colors.border}
               backgroundColor={Colors.bgCard}
@@ -219,7 +232,7 @@ export default function AddTransactionScreen() {
         {txType === 'transfer' && (
           <Stack paddingHorizontal={20} marginBottom={14}>
             <StyledPressable
-              flexDirection='row' alignItems="center" gap={8}
+              flexDirection="row" alignItems="center" gap={8}
               paddingVertical={12} paddingHorizontal={14}
               borderRadius={16} borderWidth={1} borderColor={Colors.border}
               backgroundColor={Colors.bgCard}

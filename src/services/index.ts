@@ -7,3 +7,5 @@ export type { TransactionWithRefs }             from './transactionService'
 export type { BudgetWithSpent }                 from './budgetService'
 
 export * from './exportService'
+
+export * from './premiumService'

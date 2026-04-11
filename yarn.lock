@@ -3686,7 +3686,7 @@ flow-parser@0.*:
   resolved "https://registry.npmjs.org/flow-parser/-/flow-parser-0.309.0.tgz"
   integrity sha512-poYRskeIXiHsE19Fb9sRE/CV7PYOq21j3lS5vKr27ujFBvSAhmCbbilAonJ0/u0Uai+Xgyq30/twHQeQc2Ngiw==
 
-fluent-styles@^1.62.3:
+fluent-styles@latest:
   version "1.62.3"
   resolved "https://registry.yarnpkg.com/fluent-styles/-/fluent-styles-1.62.3.tgz#b022c22db9738b132bd9ab5f50fa98f8702938dc"
   integrity sha512-g/jwsj8BnrKTSwzW4nblMEjQnjhlRLqayMdvVWuIg5FZSDyYYvuga8/8wUqfHzKqOkwwYXUAqMeHgVBrZ4NblA==

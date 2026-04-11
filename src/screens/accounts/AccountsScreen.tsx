@@ -8,11 +8,14 @@ import { dialogueService, toastService } from 'fluent-styles'
 import { IconCircle } from '../../icons/map'
 import { AddIcon, ChevronLeftIcon, MoreIcon } from '../../icons'
 import { Colors, useColors } from '../../constants'
+import { usePremium } from '../../hooks/usePremium'
+import { PremiumBanner } from '../premium/PremiumGate'
 import { useAccounts, useSettings } from '../../hooks'
 import { formatCurrency } from '../../utils'
 
 export default function AccountsScreen() {
   const Colors = useColors()
+  const premium = usePremium()
   const { data: settingsData } = useSettings()
   const symbol = settingsData?.currencySymbol ?? '$'
   const { data: accs, loading, remove, totalBalance } = useAccounts()
@@ -97,7 +100,7 @@ export default function AccountsScreen() {
             flexDirection="row" alignItems="center" justifyContent="center" gap={10}
             marginHorizontal={20} marginTop={16} paddingVertical={16}
             borderRadius={12} borderWidth={1} borderColor={Colors.primary}
-            onPress={() => router.push('/add-account' as any)}
+            onPress={() => premium.canAddAccount((accs ?? []).length) ? router.push('/add-account' as any) : router.push('/premium' as any)}
           >
             <AddIcon size={18} color={Colors.primary} strokeWidth={2.5} />
             <StyledText fontSize={14} fontWeight="700" color={Colors.primary}>ADD NEW ACCOUNT</StyledText>

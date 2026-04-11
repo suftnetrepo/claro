@@ -13,7 +13,8 @@ import {
 import { runMigrations }   from '../src/db'
 import { seedDatabase }    from '../src/db/seed'
 import { isSetupComplete, isBiometricAvailable } from '../src/utils/security'
-import { useAuthStore, useThemeStore } from '../src/stores'
+import { getEntitlement } from '../src/services/premiumService'
+import { useAuthStore, useThemeStore, usePremiumStore } from '../src/stores'
 import { Colors }          from '../src/constants'
 
 // Keep splash visible while bootstrapping
@@ -26,6 +27,7 @@ export default function RootLayout() {
 
   const { setSetupComplete, setBiometricAvailable, setLocked } = useAuthStore()
   const { loadTheme } = useThemeStore()
+  const { setEntitlement } = usePremiumStore()
 
   const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
@@ -40,6 +42,8 @@ export default function RootLayout() {
     const bootstrap = async () => {
       try {
         await loadTheme()
+      const entitlement = await getEntitlement()
+      setEntitlement(entitlement.isActive, entitlement.plan)
       await runMigrations()
         await seedDatabase()
         const setupDone    = await isSetupComplete()
@@ -97,6 +101,7 @@ export default function RootLayout() {
             <Stack.Screen name="add-category"     options={{ presentation: 'modal', headerShown: false }} />
             <Stack.Screen name="set-budget"       options={{ presentation: 'modal', headerShown: false }} />
             <Stack.Screen name="change-pin"       options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="premium"            options={{ presentation: 'modal', headerShown: false }} />
           </Stack>
         </StyledPage>
       </PortalManager>

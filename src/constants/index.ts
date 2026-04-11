@@ -127,3 +127,5 @@ export const CONFIG = {
 } as const
 
 export * from './themes'
+
+export * from './premium'

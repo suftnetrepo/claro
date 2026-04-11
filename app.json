@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Claro",
+    "slug": "claro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#22713F"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.claro.finance",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Claro uses Face ID to keep your finances secure."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#22713F"
+      },
+      "package": "com.claro.finance"
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Claro uses Face ID to keep your finances secure."
+        }
+      ]
+    ],
+    "scheme": "claro",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

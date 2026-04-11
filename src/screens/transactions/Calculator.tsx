@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Stack, StyledText, StyledPressable } from 'fluent-styles'
 import { BackspaceIcon } from '../../icons'
-import { Colors, useColors } from '../../constants'
+import { useColors } from '../../constants'
 
 interface CalculatorProps {
   value:     string
@@ -17,7 +17,6 @@ const KEYS = [
 ]
 
 export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol }) => {
-
   const handleKey = useCallback((key: string) => {
     if (key === '⌫') {
       onChange(value.length <= 1 ? '0' : value.slice(0, -1))
@@ -43,43 +42,41 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol 
     onChange(value + key)
   }, [value, onChange])
 
+  const Colors = useColors()
   const displayValue = value === '' ? '0' : value
 
   return (
     <Stack>
       {/* Amount display */}
-      <Stack
-        alignItems="center" justifyContent="center"
-        paddingVertical={20} paddingHorizontal={24}
-      >
+      <Stack alignItems="center" justifyContent="center" paddingVertical={8} paddingHorizontal={24}>
         <Stack horizontal alignItems="flex-end" gap={4}>
-          <StyledText fontSize={18} fontWeight="700" color={Colors.textMuted} marginBottom={6}>
+          <StyledText fontSize={20} fontWeight="700" color={Colors.textMuted} marginBottom={8}>
             {symbol}
           </StyledText>
           <StyledText
-            fontSize={displayValue.length > 8 ? 32 : 42}
+            fontSize={displayValue.length > 8 ? 38 : 52}
             fontWeight="800"
             color={Colors.textPrimary}
-            letterSpacing={-1}
+            letterSpacing={-2}
           >
             {displayValue}
           </StyledText>
         </Stack>
       </Stack>
 
-      {/* Keypad grid */}
-      <Stack paddingHorizontal={16} paddingBottom={8} gap={4}>
+      {/* Keypad grid — full width, roomy keys like mockup */}
+      <Stack paddingHorizontal={20} paddingBottom={8} gap={8}>
         {KEYS.map((row, ri) => (
-          <Stack key={ri} horizontal gap={4}>
+          <Stack key={ri} horizontal gap={8}>
             {row.map((key) => (
               <StyledPressable
                 key={key}
                 flex={1}
-                height={64}
-                borderRadius={14}
+                height={72}
+                borderRadius={18}
                 backgroundColor={key === '⌫' ? Colors.expenseLight : Colors.bgCard}
                 borderWidth={1}
-                borderColor={Colors.border}
+                borderColor={key === '⌫' ? Colors.expenseLight : Colors.border}
                 alignItems="center"
                 justifyContent="center"
                 onPress={() => handleKey(key)}
@@ -87,11 +84,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol 
                 {key === '⌫' ? (
                   <BackspaceIcon size={22} color={Colors.expense} />
                 ) : (
-                  <StyledText
-                    fontSize={22}
-                    fontWeight="600"
-                    color={Colors.textPrimary}
-                  >
+                  <StyledText fontSize={24} fontWeight="600" color={Colors.textPrimary}>
                     {key}
                   </StyledText>
                 )}

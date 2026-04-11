@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FlatList } from 'react-native'
+import { FlatList, ScrollView } from 'react-native'
 import {
   Stack, StyledText, StyledPressable, Popup, TabBar
 } from 'fluent-styles'
@@ -62,42 +62,40 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
           }}
         />
 
-        <FlatList
-          data={cats}
-          keyExtractor={item => item.id}
-          numColumns={4}
-          scrollEnabled={false}
-          contentContainerStyle={{ padding: 16 }}
-          renderItem={({ item }) => {
-            const isSelected = item.id === selected
-            return (
-              <StyledPressable
-                flex={1}
-                alignItems="center"
-                gap={6}
-                paddingVertical={12}
-                borderRadius={12}
-                backgroundColor={isSelected ? Colors.accent + '66' : 'transparent'}
-                onPress={() => { onSelect(item); onClose() }}
-              >
-                <IconCircle
-                  iconKey={item.icon}
-                  bg={isSelected ? item.color : item.color + 'CC'}
-                  size={48}
-                />
-                <StyledText
-                  fontSize={10}
-                  fontWeight="600"
-                  color={isSelected ? Colors.primary : Colors.textMuted}
-                  textAlign="center"
-                  numberOfLines={2}
+        <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+          <Stack flexDirection="row" flexWrap="wrap" padding={12}>
+            {cats.map(item => {
+              const isSelected = item.id === selected
+              return (
+                <StyledPressable
+                  key={item.id}
+                  width="25%"
+                  alignItems="center"
+                  gap={6}
+                  paddingVertical={12}
+                  borderRadius={12}
+                  backgroundColor={isSelected ? Colors.accent : 'transparent'}
+                  onPress={() => { onSelect(item); onClose() }}
                 >
-                  {item.name}
-                </StyledText>
-              </StyledPressable>
-            )
-          }}
-        />
+                  <IconCircle
+                    iconKey={item.icon}
+                    bg={item.color}
+                    size={48}
+                  />
+                  <StyledText
+                    fontSize={10}
+                    fontWeight="600"
+                    color={isSelected ? Colors.primary : Colors.textMuted}
+                    textAlign="center"
+                    numberOfLines={2}
+                  >
+                    {item.name}
+                  </StyledText>
+                </StyledPressable>
+              )
+            })}
+          </Stack>
+        </ScrollView>
       </Stack>
     </Popup>
   )

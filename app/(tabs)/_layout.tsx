@@ -33,7 +33,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="records"
         options={{
-          title: 'Records',
+          title: 'Home',
           tabBarIcon: ({ color, focused }: TabIconProps) => (
             <RecordsTabIcon size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />
           ),

@@ -163,13 +163,15 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
       return null
     }
 
-    // Build chartData with extra safety
+    // Build chartData matching react-native-charts-kit expectations
     const chartData = {
       labels: labels.slice(0, data.length),
       datasets: [
         {
           data: [...data],
-          data2: data.map(() => 0),
+          data2: data.map(() => 0), // Required by library type
+          color: () => color || 'rgba(200, 200, 200, 1)',
+          strokeWidth: 2,
         }
       ],
     }
@@ -187,10 +189,9 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
 
     const dataset = chartData.datasets[0]
     if (!dataset 
-        || !dataset.data 
         || !Array.isArray(dataset.data) 
         || dataset.data.length === 0) {
-      console.log('[CategoryChart] Guard 8b: chartData.datasets[0] invalid', dataset)
+      console.log('[CategoryChart] Guard 8b: chartData.datasets[0] invalid or data missing', dataset)
       return null
     }
 
@@ -200,26 +201,21 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
       return null
     }
 
-    const chartConfig = {
-      backgroundColor: Colors.bgCard,
-      backgroundGradientFrom: Colors.bgCard,
-      backgroundGradientTo: Colors.bgCard,
-      color: () => color || 'rgba(200, 200, 200, 1)',
-      barPercentage: 0.7,
-      useShadowColorFromDataset: false,
-      decimalPlaces: 0,
-      labelColor: () => Colors.textMuted,
-      propsForLabels: {
-        fontSize: 11,
-        fontWeight: '600' as any,
-      },
-    }
-
     console.log('[CategoryChart] All guards passed, rendering BarChart with data:', {
       labelsLength: chartData.labels.length,
       dataLength: dataset.data.length,
       dataValues: dataset.data,
     })
+
+    // Minimal chartConfig with only essential properties to avoid library bugs
+    const chartConfig = {
+      backgroundColor: Colors.bgCard,
+      backgroundGradientFrom: Colors.bgCard,
+      backgroundGradientTo: Colors.bgCard,
+      color: () => Colors.textMuted,
+      labelColor: () => Colors.textMuted,
+      decimalPlaces: 0,
+    }
 
     return (
       <Stack alignItems="center" paddingVertical={8}>
@@ -232,7 +228,7 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
           fromZero
           withInnerLines={false}
           segments={4}
-          showBarTops={true}
+          showBarTops={false}
           yAxisLabel=""
           yAxisSuffix=""
         />
@@ -459,9 +455,9 @@ function TrendsTab({ data, symbol, loading }: {
         const val = Number(m.expense) || 0
         return (isFinite(val) && val >= 0) ? val : 0
       }),
-      data2: validMonthly.map(() => 0), // required by library
-      strokeWidth: 3,
+      data2: validMonthly.map(() => 0), // Required by library type
       color: () => Colors.primary,
+      strokeWidth: 3,
     }],
   }
 
@@ -479,9 +475,9 @@ function TrendsTab({ data, symbol, loading }: {
         const val = Number(m.income) || 0
         return (isFinite(val) && val >= 0) ? val : 0
       }),
-      data2: validMonthly.map(() => 0), // required by library
-      strokeWidth: 3,
+      data2: validMonthly.map(() => 0), // Required by library type
       color: () => Colors.income,
+      strokeWidth: 3,
     }],
   }
 

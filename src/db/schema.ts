@@ -49,16 +49,34 @@ export const transactions = sqliteTable('transactions', {
 })
 
 // ─── Budgets ──────────────────────────────────────────────────────────────────
-
+// 
+// CRITICAL DATA RELATIONSHIP:
+// Budgets are NOT account-specific. They represent category spending limits by month.
+// A budget for "Groceries in April" applies across ALL accounts that have grocery transactions.
+// 
+// Example:
+//   Budget: category="Groceries", month="2026-04", limit=$200
+//   Transactions:
+//     - $50 groceries from Checking account
+//     - $75 groceries from Credit Card account
+//   Total spent: $125 (aggregated across both accounts)
+// 
+// This means:
+//   - No accountId field on budgets table
+//   - Budget usage is calculated by summing all transactions of that category in that month
+//   - Limit applies globally, not per account
+//   - Free plan: 1 budget per month (global limit)
+// 
 export const budgets = sqliteTable('budgets', {
   id:         text('id').primaryKey(),
   categoryId: text('category_id').notNull()
               .references(() => categories.id, { onDelete: 'cascade' }),
-  month:      text('month').notNull(),   // "2026-04"
+  month:      text('month').notNull(),   // "2026-04" format
   limitAmount:real('limit_amount').notNull(),
   createdAt:  integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt:  integer('updated_at', { mode: 'timestamp' }).notNull(),
 }, (t) => ({
+  // Unique: one budget limit per category per month (not per account)
   uniqueMonthCategory: uniqueIndex('budgets_month_category').on(t.month, t.categoryId),
 }))
 

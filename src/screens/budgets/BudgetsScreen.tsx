@@ -41,7 +41,7 @@ export default function BudgetsScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={Colors.bg}>
+    <StyledPage  backgroundColor={Colors.bg}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack flex={1}>
 
@@ -76,6 +76,13 @@ export default function BudgetsScreen() {
           <Stack padding={16}><StyledSkeleton template="list-item" repeat={5} animation="shimmer" /></Stack>
         ) : (
           <StyledScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+
+            {/* Info: Budgets are cross-account */}
+            <Stack paddingHorizontal={16} paddingVertical={12} marginBottom={12}>
+              <StyledText fontSize={12} fontWeight="600" color={Colors.textMuted} letterSpacing={0.3}>
+                💡 Budget limits apply across all accounts for each category
+              </StyledText>
+            </Stack>
 
             {/* Budgeted rows — swipeable */}
             {data.length > 0 && (

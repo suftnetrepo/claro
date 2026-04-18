@@ -18,40 +18,41 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
   return (
     <Stack
       horizontal alignItems="center" justifyContent="space-between"
-      paddingHorizontal={20} paddingTop={20} paddingBottom={16}
-      borderBottomWidth={1} borderBottomColor={Colors.border}
+      paddingHorizontal={20} 
+       marginBottom={8}
+   
     >
       <StyledPressable
-        width={36} height={36} borderRadius={18}
+        width={48} height={48} borderRadius={999}
         backgroundColor={Colors.bgMuted}
         alignItems="center" justifyContent="center"
         onPress={onClose}
       >
-        <CloseIcon size={18} color={Colors.textPrimary} />
+        <CloseIcon size={24} color={Colors.textPrimary} />
       </StyledPressable>
 
-      <Text variant="title" color={Colors.textPrimary}>
+      <Text variant="title" color={Colors.textMuted}>
         {title}
       </Text>
 
       <Stack horizontal gap={8}>
         {onDelete && (
           <StyledPressable
-            width={36} height={36} borderRadius={18}
+            width={48} height={48} borderRadius={999}
             backgroundColor={Colors.expenseLight}
             alignItems="center" justifyContent="center"
             onPress={onDelete}
           >
-            <DeleteIcon size={16} color={Colors.expense} />
+            <DeleteIcon size={24} color={Colors.expense} />
           </StyledPressable>
         )}
         <StyledPressable
-          width={36} height={36} borderRadius={18}
+          width={48} height={48} borderRadius={999}
           backgroundColor={saveColor}
           alignItems="center" justifyContent="center"
           onPress={onSave}
         >
-          <CheckIcon size={18} color={Colors.white} strokeWidth={2.5} />
+          <CheckIcon size={24} color={Colors.white} strokeWidth={2.5} />
         </StyledPressable>
       </Stack>
     </Stack>

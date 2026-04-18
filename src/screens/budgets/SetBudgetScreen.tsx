@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
-  Stack, StyledText, StyledPressable,
+  Stack, StyledText, StyledPressable, StyledPage,
 } from 'fluent-styles'
 import { format } from 'date-fns'
 import { Colors, useColors } from '../../constants'
@@ -60,7 +60,8 @@ export default function SetBudgetScreen() {
 
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1}>
 
       <ModalHeader
         title={isEdit ? 'Edit Budget' : 'Set Budget'}
@@ -93,6 +94,7 @@ export default function SetBudgetScreen() {
       {/* Calculator */}
       <Calculator value={amount} onChange={setAmount} symbol={symbol} />
 
-    </Stack>
+      </Stack>
+    </StyledPage>
   )
 }

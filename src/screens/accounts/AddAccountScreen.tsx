@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   Stack, StyledText, StyledPressable, StyledTextInput,
-  StyledScrollView, StyledDivider,
+  StyledScrollView, StyledDivider, StyledPage,
 } from 'fluent-styles'
 import { useColors } from '../../constants'
 import { toastService, loaderService } from 'fluent-styles'
@@ -60,7 +60,8 @@ export default function AddAccountScreen() {
 
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1}>
 
       <ModalHeader
         title={isEdit ? 'Edit Account' : 'New Account'}
@@ -124,6 +125,7 @@ export default function AddAccountScreen() {
 
       </StyledScrollView>
 
-    </Stack>
+      </Stack>
+    </StyledPage>
   )
 }

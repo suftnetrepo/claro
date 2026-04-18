@@ -3,6 +3,7 @@ import { Slot, router } from 'expo-router'
 import { GlobalPortalProvider, PortalManager } from 'fluent-styles'
 import * as SplashScreen from 'expo-splash-screen'
 import Purchases from 'react-native-purchases'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   useFonts,
   PlusJakartaSans_400Regular,
@@ -95,10 +96,12 @@ export default function RootLayout() {
   if (!isReady) return null
 
   return (
-    <GlobalPortalProvider>
-      <PortalManager>
-        <Slot />
-      </PortalManager>
-    </GlobalPortalProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GlobalPortalProvider>
+        <PortalManager>
+          <Slot />
+        </PortalManager>
+      </GlobalPortalProvider>
+    </GestureHandlerRootView>
   )
 }

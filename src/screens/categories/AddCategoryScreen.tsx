@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   Stack, StyledText, StyledPressable, StyledTextInput,
-  StyledScrollView, TabBar,
+  StyledScrollView, TabBar, StyledPage,
 } from 'fluent-styles'
 import { Colors, useColors, CategoryColors } from '../../constants'
 import { ALL_CATEGORY_ICON_KEYS } from '../../icons/map'
@@ -62,7 +62,8 @@ export default function AddCategoryScreen() {
 
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1}>
 
       <ModalHeader
         title={isEdit ? 'Edit Category' : 'New Category'}
@@ -128,6 +129,7 @@ export default function AddCategoryScreen() {
 
       </StyledScrollView>
 
-    </Stack>
+      </Stack>
+    </StyledPage>
   )
 }

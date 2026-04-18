@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Vibration } from 'react-native'
 import { router } from 'expo-router'
-import { Stack, StyledText, StyledPressable, StyleShape } from 'fluent-styles'
+import { Stack, StyledText, StyledPressable, StyleShape, StyledPage } from 'fluent-styles'
 import { toastService } from 'fluent-styles'
 import { LockIcon, BackspaceIcon } from '../../icons'
 import { Colors, useColors, CONFIG } from '../../constants'
@@ -75,7 +75,8 @@ export default function ChangePINScreen() {
   }, [pin, step, newPin])
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg} alignItems="center" justifyContent="center" paddingHorizontal={32}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1} alignItems="center" justifyContent="center" paddingHorizontal={32}>
 
       <StyleShape
         cycle size={64} backgroundColor={Colors.accent}
@@ -135,6 +136,7 @@ export default function ChangePINScreen() {
         <StyledText fontSize={15} fontWeight="600" color={Colors.textMuted}>Cancel</StyledText>
       </StyledPressable>
 
-    </Stack>
+      </Stack>
+    </StyledPage>
   )
 }

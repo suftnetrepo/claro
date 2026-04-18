@@ -19,6 +19,7 @@ export const budgetService = {
     const monthKey    = formatMonthKey(month)
     const { start, end } = getMonthRange(month)
 
+    // 1. Get all budgets for this month
     const budgetRows = await db
       .select({
         id:            budgets.id,
@@ -35,6 +36,11 @@ export const budgetService = {
       .leftJoin(categories, eq(budgets.categoryId, categories.id))
       .where(eq(budgets.month, monthKey))
 
+    // 2. Calculate spending by category for this month
+    // ⚠️ CRITICAL: This sums ALL transactions for each category, across ALL accounts
+    // Note: No accountId filter here - budgets are cross-account
+    // If user has transactions in multiple accounts for the same category this month,
+    // they are ALL summed together for the budget calculation
     const spendingRows = await db
       .select({ categoryId: transactions.categoryId, total: sum(transactions.amount) })
       .from(transactions)

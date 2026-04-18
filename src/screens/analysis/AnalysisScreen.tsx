@@ -96,62 +96,107 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
   const Colors = useColors()
   
   try {
-    // Guard: no categories or not an array
+    // Guard 1: no categories or not an array
     if (!Array.isArray(categories) || categories.length === 0) {
-      console.log('CategoryChart: Categories is not valid array or empty')
+      console.log('[CategoryChart] Guard 1: Categories is not valid array or empty')
       return null
     }
 
+    // Guard 2: validate screen dimensions
     const screenW = Dimensions.get('window').width
+    if (!screenW || screenW <= 0) {
+      console.log('[CategoryChart] Guard 2: Invalid screen width', screenW)
+      return null
+    }
     const chartW = screenW - 32
     
     // Top 6 categories for visual clarity
     const topCategories = categories.slice(0, 6)
     
-    // Guard: empty top categories
+    // Guard 3: empty top categories
     if (topCategories.length === 0) {
-      console.log('CategoryChart: No top categories after slice')
+      console.log('[CategoryChart] Guard 3: No top categories after slice')
       return null
     }
 
-    // Extract data with strict validation
+    // Guard 4: validate all category objects
+    const allValid = topCategories.every(c => c && typeof c === 'object' && 'total' in c)
+    if (!allValid) {
+      console.log('[CategoryChart] Guard 4: Some categories have invalid structure')
+      return null
+    }
+
+    // Extract labels
     const labels = topCategories.map(c => {
-      if (!c || typeof c !== 'object') return 'Unknown'
-      const name = c.categoryName || 'Unknown'
-      return name.length > 8 ? name.substring(0, 8) : name
+      const name = (c && c.categoryName) || 'Unknown'
+      return typeof name === 'string' && name.length > 8 ? name.substring(0, 8) : String(name)
     })
     
-    const data = topCategories.map(c => {
-      if (!c || typeof c !== 'object') return 0
+    // Extract and validate data
+    const data = topCategories.map((c, idx) => {
+      if (!c || typeof c !== 'object') {
+        console.warn(`[CategoryChart] Invalid category at index ${idx}`)
+        return 0
+      }
       const value = Number(c.total) || 0
-      // Ensure all numbers are valid
-      return (isFinite(value) && value >= 0) ? value : 0
+      const valid = (isFinite(value) && value >= 0) ? value : 0
+      return valid
     })
     
-    // Ensure data is not all zeros or invalid
-    const hasValidData = data.length > 0 && data.some(v => v > 0 && isFinite(v))
-    if (!hasValidData) {
-      console.log('CategoryChart: No valid data values (all zero or invalid)')
-      return null
-    }
-
-    // Validate all data elements
+    // Guard 5: ensure data array is valid
     if (!Array.isArray(data) || data.length === 0) {
-      console.log('CategoryChart: Data array invalid')
+      console.log('[CategoryChart] Guard 5: Data array is invalid after extraction')
       return null
     }
 
-    const chartData = {
-      labels,
-      datasets: [{
-        data: data.filter(v => typeof v === 'number' && isFinite(v)),
-        data2: data.map(() => 0), // required by library
-      }],
+    // Guard 6: ensure we have at least some non-zero values
+    const hasValidData = data.some(v => v > 0 && isFinite(v) && v !== Infinity)
+    if (!hasValidData) {
+      console.log('[CategoryChart] Guard 6: No valid data values (all zero or invalid)')
+      return null
     }
 
-    // Validate chartData structure
-    if (!chartData.datasets || !chartData.datasets[0] || !chartData.datasets[0].data) {
-      console.log('CategoryChart: chartData structure invalid')
+    // Guard 7: validate all data elements
+    const dataValid = data.every(v => typeof v === 'number' && isFinite(v) && v >= 0)
+    if (!dataValid) {
+      console.log('[CategoryChart] Guard 7: Some data elements are invalid', data)
+      return null
+    }
+
+    // Build chartData with extra safety
+    const chartData = {
+      labels: labels.slice(0, data.length),
+      datasets: [
+        {
+          data: [...data],
+          data2: data.map(() => 0),
+        }
+      ],
+    }
+
+    // Guard 8: validate complete chartData structure
+    if (!chartData 
+        || !chartData.labels 
+        || !Array.isArray(chartData.labels)
+        || !chartData.datasets 
+        || !Array.isArray(chartData.datasets)
+        || chartData.datasets.length === 0) {
+      console.log('[CategoryChart] Guard 8: chartData structure invalid (top level)')
+      return null
+    }
+
+    const dataset = chartData.datasets[0]
+    if (!dataset 
+        || !dataset.data 
+        || !Array.isArray(dataset.data) 
+        || dataset.data.length === 0) {
+      console.log('[CategoryChart] Guard 8b: chartData.datasets[0] invalid', dataset)
+      return null
+    }
+
+    // Guard 9: validate Colors object
+    if (!Colors || !Colors.bgCard || !Colors.textMuted) {
+      console.log('[CategoryChart] Guard 9: Colors object invalid', Colors)
       return null
     }
 
@@ -159,16 +204,22 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
       backgroundColor: Colors.bgCard,
       backgroundGradientFrom: Colors.bgCard,
       backgroundGradientTo: Colors.bgCard,
-      color: () => color,
+      color: () => color || 'rgba(200, 200, 200, 1)',
       barPercentage: 0.7,
       useShadowColorFromDataset: false,
       decimalPlaces: 0,
       labelColor: () => Colors.textMuted,
       propsForLabels: {
         fontSize: 11,
-        fontWeight: '600',
+        fontWeight: '600' as any,
       },
     }
+
+    console.log('[CategoryChart] All guards passed, rendering BarChart with data:', {
+      labelsLength: chartData.labels.length,
+      dataLength: dataset.data.length,
+      dataValues: dataset.data,
+    })
 
     return (
       <Stack alignItems="center" paddingVertical={8}>
@@ -188,7 +239,7 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
       </Stack>
     )
   } catch (error) {
-    console.error('CategoryChart error:', error, { categories, color })
+    console.error('[CategoryChart] Unexpected error:', error, { categories, color })
     return null
   }
 }

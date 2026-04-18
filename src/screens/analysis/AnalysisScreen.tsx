@@ -95,63 +95,81 @@ function CategoryRow({ item, symbol }: { item: CategorySpending; symbol: string 
 function CategoryChart({ categories, color }: { categories: CategorySpending[]; color: string }) {
   const Colors = useColors()
   
-  // Guard: no categories
-  if (!categories || categories.length === 0) {
-    return null
-  }
-
-  const screenW = Dimensions.get('window').width
-  const chartW = screenW - 32
-  
-  // Top 6 categories for visual clarity
-  const topCategories = categories.slice(0, 6)
-  
-  // Guard: empty top categories
-  if (topCategories.length === 0) {
-    return null
-  }
-
-  // Extract data with fallbacks
-  const labels = topCategories.map(c => {
-    const name = c.categoryName || 'Unknown'
-    return name.length > 8 ? name.substring(0, 8) : name
-  })
-  
-  const data = topCategories.map(c => {
-    const value = c.total || 0
-    return isFinite(value) ? value : 0
-  })
-  
-  // Ensure data is not all zeros
-  const hasValidData = data.length > 0 && data.some(v => v > 0)
-  if (!hasValidData) {
-    return null
-  }
-
-  const chartData = {
-    labels,
-    datasets: [{
-      data,
-      data2: data.map(() => 0), // required by library
-    }],
-  }
-
-  const chartConfig = {
-    backgroundColor: Colors.bgCard,
-    backgroundGradientFrom: Colors.bgCard,
-    backgroundGradientTo: Colors.bgCard,
-    color: () => color,
-    barPercentage: 0.7,
-    useShadowColorFromDataset: false,
-    decimalPlaces: 0,
-    labelColor: () => Colors.textMuted,
-    propsForLabels: {
-      fontSize: 11,
-      fontWeight: '600',
-    },
-  }
-
   try {
+    // Guard: no categories or not an array
+    if (!Array.isArray(categories) || categories.length === 0) {
+      console.log('CategoryChart: Categories is not valid array or empty')
+      return null
+    }
+
+    const screenW = Dimensions.get('window').width
+    const chartW = screenW - 32
+    
+    // Top 6 categories for visual clarity
+    const topCategories = categories.slice(0, 6)
+    
+    // Guard: empty top categories
+    if (topCategories.length === 0) {
+      console.log('CategoryChart: No top categories after slice')
+      return null
+    }
+
+    // Extract data with strict validation
+    const labels = topCategories.map(c => {
+      if (!c || typeof c !== 'object') return 'Unknown'
+      const name = c.categoryName || 'Unknown'
+      return name.length > 8 ? name.substring(0, 8) : name
+    })
+    
+    const data = topCategories.map(c => {
+      if (!c || typeof c !== 'object') return 0
+      const value = Number(c.total) || 0
+      // Ensure all numbers are valid
+      return (isFinite(value) && value >= 0) ? value : 0
+    })
+    
+    // Ensure data is not all zeros or invalid
+    const hasValidData = data.length > 0 && data.some(v => v > 0 && isFinite(v))
+    if (!hasValidData) {
+      console.log('CategoryChart: No valid data values (all zero or invalid)')
+      return null
+    }
+
+    // Validate all data elements
+    if (!Array.isArray(data) || data.length === 0) {
+      console.log('CategoryChart: Data array invalid')
+      return null
+    }
+
+    const chartData = {
+      labels,
+      datasets: [{
+        data: data.filter(v => typeof v === 'number' && isFinite(v)),
+        data2: data.map(() => 0), // required by library
+      }],
+    }
+
+    // Validate chartData structure
+    if (!chartData.datasets || !chartData.datasets[0] || !chartData.datasets[0].data) {
+      console.log('CategoryChart: chartData structure invalid')
+      return null
+    }
+
+    const chartConfig = {
+      backgroundColor: Colors.bgCard,
+      backgroundGradientFrom: Colors.bgCard,
+      backgroundGradientTo: Colors.bgCard,
+      color: () => color,
+      barPercentage: 0.7,
+      useShadowColorFromDataset: false,
+      decimalPlaces: 0,
+      labelColor: () => Colors.textMuted,
+      propsForLabels: {
+        fontSize: 11,
+        fontWeight: '600',
+      },
+    }
+
     return (
       <Stack alignItems="center" paddingVertical={8}>
         <BarChart
@@ -170,7 +188,7 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
       </Stack>
     )
   } catch (error) {
-    console.error('CategoryChart error:', error)
+    console.error('CategoryChart error:', error, { categories, color })
     return null
   }
 }
@@ -183,15 +201,25 @@ function SpendingTab({ data, symbol, loading }: {
   const Colors = useColors()
   if (loading) return <Stack padding={16}><StyledSkeleton template="card" animation="shimmer" /></Stack>
 
+  // Guard: data is not properly initialized
+  if (!data || typeof data !== 'object') {
+    console.warn('SpendingTab: Invalid data object', data)
+    return <Stack padding={16}><StyledEmptyState variant="minimal" illustration="⚠️" title="Data error" /></Stack>
+  }
+
+  const totalExpense = Number(data.totalExpense) || 0
+  const netBalance = Number(data.netBalance) || 0
+  const expenseByCategory = Array.isArray(data.expenseByCategory) ? data.expenseByCategory : []
+
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 20 }} showsVerticalScrollIndicator={false}>
       <Stack horizontal gap={12}>
-        <SummaryCard label="TOTAL SPENT"  amount={data.totalExpense} symbol={symbol} color={Colors.expense} />
-        <SummaryCard label="NET BALANCE"  amount={data.netBalance}   symbol={symbol}
-          color={data.netBalance >= 0 ? Colors.income : Colors.expense} />
+        <SummaryCard label="TOTAL SPENT"  amount={totalExpense} symbol={symbol} color={Colors.expense} />
+        <SummaryCard label="NET BALANCE"  amount={netBalance}   symbol={symbol}
+          color={netBalance >= 0 ? Colors.income : Colors.expense} />
       </Stack>
 
-      {data.totalExpense === 0 ? (
+      {totalExpense === 0 ? (
         <StyledEmptyState variant="minimal" illustration="📊"
           title="No spending this month" description="Add transactions to see your spending breakdown" animated />
       ) : (
@@ -204,27 +232,29 @@ function SpendingTab({ data, symbol, loading }: {
             <StyledCard padding={16} borderRadius={18} backgroundColor={Colors.bgCard}
               borderWidth={1} borderColor={Colors.border}
               style={{ shadowColor: Colors.border, shadowOpacity: 0.5, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2 }}>
-              <CategoryChart categories={data.expenseByCategory} color={Colors.expense} />
+              <CategoryChart categories={expenseByCategory} color={Colors.expense} />
             </StyledCard>
           </Stack>
 
           {/* Category details card */}
-          <Stack gap={8}>
-            <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
-              BY CATEGORY
-            </StyledText>
-            <StyledCard padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
-              borderWidth={1} borderColor={Colors.border}>
-              {data.expenseByCategory.map((item, i) => (
-                <Stack key={item.categoryId}>
-                  <CategoryRow item={item} symbol={symbol} />
-                  {i < data.expenseByCategory.length - 1 && (
-                    <StyledDivider borderBottomColor={Colors.border} marginLeft={50} />
-                  )}
-                </Stack>
-              ))}
-            </StyledCard>
-          </Stack>
+          {expenseByCategory.length > 0 && (
+            <Stack gap={8}>
+              <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
+                BY CATEGORY
+              </StyledText>
+              <StyledCard padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
+                borderWidth={1} borderColor={Colors.border}>
+                {expenseByCategory.map((item, i) => (
+                  <Stack key={item.categoryId}>
+                    <CategoryRow item={item} symbol={symbol} />
+                    {i < expenseByCategory.length - 1 && (
+                      <StyledDivider borderBottomColor={Colors.border} marginLeft={50} />
+                    )}
+                  </Stack>
+                ))}
+              </StyledCard>
+            </Stack>
+          )}
         </>
       )}
     </ScrollView>
@@ -239,29 +269,40 @@ function IncomeTab({ data, symbol, loading }: {
   const Colors = useColors()
   if (loading) return <Stack padding={16}><StyledSkeleton template="card" animation="shimmer" /></Stack>
 
+  // Guard: data is not properly initialized
+  if (!data || typeof data !== 'object') {
+    console.warn('IncomeTab: Invalid data object', data)
+    return <Stack padding={16}><StyledEmptyState variant="minimal" illustration="⚠️" title="Data error" /></Stack>
+  }
+
+  const totalIncome = Number(data.totalIncome) || 0
+  const totalExpense = Number(data.totalExpense) || 0
+  const netBalance = Number(data.netBalance) || 0
+  const incomeByCategory = Array.isArray(data.incomeByCategory) ? data.incomeByCategory : []
+
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 20 }} showsVerticalScrollIndicator={false}>
       <Stack horizontal gap={12}>
-        <SummaryCard label="TOTAL INCOME" amount={data.totalIncome}  symbol={symbol} color={Colors.income} />
-        <SummaryCard label="TOTAL SPENT"  amount={data.totalExpense} symbol={symbol} color={Colors.expense} />
+        <SummaryCard label="TOTAL INCOME" amount={totalIncome}  symbol={symbol} color={Colors.income} />
+        <SummaryCard label="TOTAL SPENT"  amount={totalExpense} symbol={symbol} color={Colors.expense} />
       </Stack>
 
       {/* Net balance highlight card */}
       <StyledCard padding={20} borderRadius={18}
-        backgroundColor={data.netBalance >= 0 ? Colors.incomeLight : Colors.expenseLight}
-        borderWidth={2} borderColor={data.netBalance >= 0 ? Colors.income : Colors.expense}>
+        backgroundColor={netBalance >= 0 ? Colors.incomeLight : Colors.expenseLight}
+        borderWidth={2} borderColor={netBalance >= 0 ? Colors.income : Colors.expense}>
         <StyledText fontSize={11} fontWeight="700" letterSpacing={1}
-          color={data.netBalance >= 0 ? Colors.income : Colors.expense}>NET BALANCE</StyledText>
+          color={netBalance >= 0 ? Colors.income : Colors.expense}>NET BALANCE</StyledText>
         <StyledText fontSize={32} fontWeight="800" letterSpacing={-1} marginTop={6}
-          color={data.netBalance >= 0 ? Colors.income : Colors.expense}>
-          {data.netBalance >= 0 ? '+' : ''}{formatCurrency(data.netBalance, symbol)}
+          color={netBalance >= 0 ? Colors.income : Colors.expense}>
+          {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance, symbol)}
         </StyledText>
         <StyledText fontSize={13} color={Colors.textMuted} marginTop={6}>
-          {data.netBalance >= 0 ? '✓ You saved money this month' : '⚠ Spending exceeded income'}
+          {netBalance >= 0 ? '✓ You saved money this month' : '⚠ Spending exceeded income'}
         </StyledText>
       </StyledCard>
 
-      {data.totalIncome === 0 ? (
+      {totalIncome === 0 ? (
         <StyledEmptyState variant="minimal" illustration="💰"
           title="No income this month" description="Add income transactions to see your breakdown" animated />
       ) : (
@@ -274,27 +315,29 @@ function IncomeTab({ data, symbol, loading }: {
             <StyledCard padding={16} borderRadius={18} backgroundColor={Colors.bgCard}
               borderWidth={1} borderColor={Colors.border}
               style={{ shadowColor: Colors.border, shadowOpacity: 0.5, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2 }}>
-              <CategoryChart categories={data.incomeByCategory} color={Colors.income} />
+              <CategoryChart categories={incomeByCategory} color={Colors.income} />
             </StyledCard>
           </Stack>
 
           {/* Category details */}
-          <Stack gap={8}>
-            <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
-              BY SOURCE
-            </StyledText>
-            <StyledCard padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
-              borderWidth={1} borderColor={Colors.border}>
-              {data.incomeByCategory.map((item, i) => (
-                <Stack key={item.categoryId}>
-                  <CategoryRow item={item} symbol={symbol} />
-                  {i < data.incomeByCategory.length - 1 && (
-                    <StyledDivider borderBottomColor={Colors.border} marginLeft={50} />
-                  )}
-                </Stack>
-              ))}
-            </StyledCard>
-          </Stack>
+          {incomeByCategory.length > 0 && (
+            <Stack gap={8}>
+              <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
+                BY SOURCE
+              </StyledText>
+              <StyledCard padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
+                borderWidth={1} borderColor={Colors.border}>
+                {incomeByCategory.map((item, i) => (
+                  <Stack key={item.categoryId}>
+                    <CategoryRow item={item} symbol={symbol} />
+                    {i < incomeByCategory.length - 1 && (
+                      <StyledDivider borderBottomColor={Colors.border} marginLeft={50} />
+                    )}
+                  </Stack>
+                ))}
+              </StyledCard>
+            </Stack>
+          )}
         </>
       )}
     </ScrollView>
@@ -309,8 +352,28 @@ function TrendsTab({ data, symbol, loading }: {
   const Colors = useColors()
   if (loading) return <Stack padding={16}><StyledSkeleton template="card" animation="shimmer" /></Stack>
 
-  const monthly  = data.monthlyTotals
-  const hasData  = monthly.some(m => m.expense > 0 || m.income > 0)
+  // Guard: data is not properly initialized
+  if (!data || typeof data !== 'object') {
+    console.warn('TrendsTab: Invalid data object', data)
+    return <Stack padding={16}><StyledEmptyState variant="minimal" illustration="⚠️" title="Data error" /></Stack>
+  }
+
+  const monthly = Array.isArray(data.monthlyTotals) ? data.monthlyTotals : []
+  
+  // Validate monthly data structure
+  const validMonthly = monthly.filter(m => m && typeof m === 'object')
+  if (validMonthly.length === 0) {
+    console.warn('TrendsTab: No valid monthly data')
+    return (
+      <Stack flex={1} padding={16}>
+        <StyledEmptyState variant="minimal" illustration="📈"
+          title="Not enough data yet"
+          description="Trends appear after logging transactions across multiple months" animated />
+      </Stack>
+    )
+  }
+
+  const hasData = validMonthly.some(m => (Number(m.expense) || 0) > 0 || (Number(m.income) || 0) > 0)
 
   if (!hasData) {
     return (
@@ -322,24 +385,30 @@ function TrendsTab({ data, symbol, loading }: {
     )
   }
 
-  const nonZeroMonths = monthly.filter(m => m.expense > 0)
+  const nonZeroMonths = validMonthly.filter(m => (Number(m.expense) || 0) > 0)
   const avgExpense    = nonZeroMonths.length > 0
-    ? nonZeroMonths.reduce((s, m) => s + m.expense, 0) / nonZeroMonths.length : 0
-  const maxExp = [...monthly].sort((a, b) => b.expense - a.expense)[0]
-  const minExp = [...monthly].filter(m => m.expense > 0).sort((a, b) => a.expense - b.expense)[0]
+    ? nonZeroMonths.reduce((s, m) => s + (Number(m.expense) || 0), 0) / nonZeroMonths.length : 0
+  const maxExp = [...validMonthly].sort((a, b) => (Number(b.expense) || 0) - (Number(a.expense) || 0))[0]
+  const minExp = [...validMonthly].filter(m => (Number(m.expense) || 0) > 0).sort((a, b) => (Number(a.expense) || 0) - (Number(b.expense) || 0))[0]
 
   const screenW = Dimensions.get('window').width
   const chartW = screenW - 32
 
   // Prepare data for spending trend with validation
   const spendingData = {
-    labels: monthly.map(m => m.month.substring(0, 3)),
+    labels: validMonthly.map(m => {
+      try {
+        return m.month && typeof m.month === 'string' ? m.month.substring(0, 3) : '---'
+      } catch {
+        return '---'
+      }
+    }),
     datasets: [{
-      data: monthly.map(m => {
-        const val = m.expense || 0
-        return isFinite(val) ? val : 0
+      data: validMonthly.map(m => {
+        const val = Number(m.expense) || 0
+        return (isFinite(val) && val >= 0) ? val : 0
       }),
-      data2: monthly.map(() => 0), // required by library
+      data2: validMonthly.map(() => 0), // required by library
       strokeWidth: 3,
       color: () => Colors.primary,
     }],
@@ -347,13 +416,19 @@ function TrendsTab({ data, symbol, loading }: {
 
   // Prepare data for income trend with validation
   const incomeData = {
-    labels: monthly.map(m => m.month.substring(0, 3)),
+    labels: validMonthly.map(m => {
+      try {
+        return m.month && typeof m.month === 'string' ? m.month.substring(0, 3) : '---'
+      } catch {
+        return '---'
+      }
+    }),
     datasets: [{
-      data: monthly.map(m => {
-        const val = m.income || 0
-        return isFinite(val) ? val : 0
+      data: validMonthly.map(m => {
+        const val = Number(m.income) || 0
+        return (isFinite(val) && val >= 0) ? val : 0
       }),
-      data2: monthly.map(() => 0), // required by library
+      data2: validMonthly.map(() => 0), // required by library
       strokeWidth: 3,
       color: () => Colors.income,
     }],

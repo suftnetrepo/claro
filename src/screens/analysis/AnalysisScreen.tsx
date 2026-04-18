@@ -93,20 +93,46 @@ function CategoryRow({ item, symbol }: { item: CategorySpending; symbol: string 
 
 // Category bar chart using react-native-charts-kit
 function CategoryChart({ categories, color }: { categories: CategorySpending[]; color: string }) {
-  if (!categories.length) return null
-
   const Colors = useColors()
+  
+  // Guard: no categories
+  if (!categories || categories.length === 0) {
+    return null
+  }
+
   const screenW = Dimensions.get('window').width
   const chartW = screenW - 32
   
   // Top 6 categories for visual clarity
   const topCategories = categories.slice(0, 6)
   
+  // Guard: empty top categories
+  if (topCategories.length === 0) {
+    return null
+  }
+
+  // Extract data with fallbacks
+  const labels = topCategories.map(c => {
+    const name = c.categoryName || 'Unknown'
+    return name.length > 8 ? name.substring(0, 8) : name
+  })
+  
+  const data = topCategories.map(c => {
+    const value = c.total || 0
+    return isFinite(value) ? value : 0
+  })
+  
+  // Ensure data is not all zeros
+  const hasValidData = data.length > 0 && data.some(v => v > 0)
+  if (!hasValidData) {
+    return null
+  }
+
   const chartData = {
-    labels: topCategories.map(c => c.categoryName.substring(0, 8)),
+    labels,
     datasets: [{
-      data: topCategories.map(c => c.total),
-      data2: topCategories.map(c => 0), // required by library
+      data,
+      data2: data.map(() => 0), // required by library
     }],
   }
 
@@ -125,23 +151,28 @@ function CategoryChart({ categories, color }: { categories: CategorySpending[]; 
     },
   }
 
-  return (
-    <Stack alignItems="center" paddingVertical={8}>
-      <BarChart
-        data={chartData}
-        width={chartW}
-        height={220}
-        chartConfig={chartConfig}
-        verticalLabelRotation={45}
-        fromZero
-        withInnerLines={false}
-        segments={4}
-        showBarTops={true}
-        yAxisLabel=""
-        yAxisSuffix=""
-      />
-    </Stack>
-  )
+  try {
+    return (
+      <Stack alignItems="center" paddingVertical={8}>
+        <BarChart
+          data={chartData}
+          width={chartW}
+          height={220}
+          chartConfig={chartConfig}
+          verticalLabelRotation={45}
+          fromZero
+          withInnerLines={false}
+          segments={4}
+          showBarTops={true}
+          yAxisLabel=""
+          yAxisSuffix=""
+        />
+      </Stack>
+    )
+  } catch (error) {
+    console.error('CategoryChart error:', error)
+    return null
+  }
 }
 
 // ─── Spending tab ─────────────────────────────────────────────────────────────
@@ -300,23 +331,29 @@ function TrendsTab({ data, symbol, loading }: {
   const screenW = Dimensions.get('window').width
   const chartW = screenW - 32
 
-  // Prepare data for spending trend
+  // Prepare data for spending trend with validation
   const spendingData = {
     labels: monthly.map(m => m.month.substring(0, 3)),
     datasets: [{
-      data: monthly.map(m => m.expense || 0),
-      data2: monthly.map(m => 0), // required by library
+      data: monthly.map(m => {
+        const val = m.expense || 0
+        return isFinite(val) ? val : 0
+      }),
+      data2: monthly.map(() => 0), // required by library
       strokeWidth: 3,
       color: () => Colors.primary,
     }],
   }
 
-  // Prepare data for income trend
+  // Prepare data for income trend with validation
   const incomeData = {
     labels: monthly.map(m => m.month.substring(0, 3)),
     datasets: [{
-      data: monthly.map(m => m.income || 0),
-      data2: monthly.map(m => 0), // required by library
+      data: monthly.map(m => {
+        const val = m.income || 0
+        return isFinite(val) ? val : 0
+      }),
+      data2: monthly.map(() => 0), // required by library
       strokeWidth: 3,
       color: () => Colors.income,
     }],
@@ -367,50 +404,54 @@ function TrendsTab({ data, symbol, loading }: {
       </Stack>
 
       {/* 6-month spending trend */}
-      <Stack gap={8}>
-        <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
-          6-MONTH SPENDING TREND
-        </StyledText>
-        <StyledCard padding={12} borderRadius={16} backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}>
-          <LineChart
-            data={spendingData}
-            width={chartW}
-            height={220}
-            chartConfig={chartConfig}
-            bezier
-            withDots={true}
-            withInnerLines={false}
-            segments={4}
-            fromZero
-            yAxisLabel=""
-            yAxisSuffix=""
-          />
-        </StyledCard>
-      </Stack>
+      {spendingData?.datasets?.[0]?.data?.length > 0 && (
+        <Stack gap={8}>
+          <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
+            6-MONTH SPENDING TREND
+          </StyledText>
+          <StyledCard padding={12} borderRadius={16} backgroundColor={Colors.bgCard}
+            borderWidth={1} borderColor={Colors.border}>
+            <LineChart
+              data={spendingData}
+              width={chartW}
+              height={220}
+              chartConfig={chartConfig}
+              bezier
+              withDots={true}
+              withInnerLines={false}
+              segments={4}
+              fromZero
+              yAxisLabel=""
+              yAxisSuffix=""
+            />
+          </StyledCard>
+        </Stack>
+      )}
 
       {/* 6-month income trend */}
-      <Stack gap={8}>
-        <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
-          6-MONTH INCOME TREND
-        </StyledText>
-        <StyledCard padding={12} borderRadius={16} backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}>
-          <LineChart
-            data={incomeData}
-            width={chartW}
-            height={220}
-            chartConfig={chartConfig}
-            bezier
-            withDots={true}
-            withInnerLines={false}
-            segments={4}
-            fromZero
-            yAxisLabel=""
-            yAxisSuffix=""
-          />
-        </StyledCard>
-      </Stack>
+      {incomeData?.datasets?.[0]?.data?.length > 0 && (
+        <Stack gap={8}>
+          <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
+            6-MONTH INCOME TREND
+          </StyledText>
+          <StyledCard padding={12} borderRadius={16} backgroundColor={Colors.bgCard}
+            borderWidth={1} borderColor={Colors.border}>
+            <LineChart
+              data={incomeData}
+              width={chartW}
+              height={220}
+              chartConfig={chartConfig}
+              bezier
+              withDots={true}
+              withInnerLines={false}
+              segments={4}
+              fromZero
+              yAxisLabel=""
+              yAxisSuffix=""
+            />
+          </StyledCard>
+        </Stack>
+      )}
     </ScrollView>
   )
 }

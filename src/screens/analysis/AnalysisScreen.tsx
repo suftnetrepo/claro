@@ -230,240 +230,268 @@ function MonthlyPill({ variant = 'dark' }: { variant?: 'dark' | 'gray' }) {
   )
 }
 
+// ─── Type definitions ─────────────────────────────────────────────────────────
+type MonthlyPoint = {
+  month?: string
+  income?: number
+  expense?: number
+}
+
+// ─── Trend card component ─────────────────────────────────────────────────────
+function TrendCard({
+  title,
+  subtitle,
+  value,
+  valueColor,
+  bars,
+  maxValue,
+}: {
+  title: string
+  subtitle: string
+  value: string
+  valueColor: string
+  bars: { value: number; label: string; frontColor: string }[]
+  maxValue: number
+}) {
+  const Colors = useColors()
+  const { width } = useWindowDimensions()
+  const chartWidth = width - 32 - 32 // screen - outer padding - inner padding
+
+  return (
+    <StyledCard
+      padding={16}
+      borderRadius={18}
+      backgroundColor={Colors.bgCard}
+      borderWidth={1}
+      borderColor={Colors.border}
+    >
+      <Stack gap={4} marginBottom={14}>
+        <StyledText
+          fontSize={12}
+          fontWeight="700"
+          color={Colors.textMuted}
+          letterSpacing={1}
+          textTransform="uppercase"
+        >
+          {title}
+        </StyledText>
+        <StyledText fontSize={28} fontWeight="800" color={valueColor} letterSpacing={-1}>
+          {value}
+        </StyledText>
+        <StyledText fontSize={12} color={Colors.textMuted}>
+          {subtitle}
+        </StyledText>
+      </Stack>
+
+      <BarChart
+        data={bars}
+        width={chartWidth}
+        height={180}
+        barWidth={28}
+        spacing={18}
+        roundedTop
+        roundedBottom
+        barBorderRadius={10}
+        xAxisThickness={0}
+        yAxisThickness={0}
+        hideYAxisText
+        noOfSections={3}
+        rulesType="dashed"
+        rulesColor={Colors.border}
+        dashWidth={4}
+        dashGap={4}
+        maxValue={Math.max(maxValue, 1)}
+        xAxisLabelTextStyle={{
+          color: Colors.textMuted,
+          fontSize: 11,
+          fontWeight: '600',
+        }}
+        backgroundColor="transparent"
+      />
+    </StyledCard>
+  )
+}
+
+// ─── Trends tab ───────────────────────────────────────────────────────────────
 function TrendsTab({ data, symbol, loading }: {
   data: ReturnType<typeof useAnalysis>['data']
   symbol: string; loading: boolean
 }) {
   const Colors = useColors()
-  const { width: screenWidth } = useWindowDimensions()
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState<number | null>(null)
-  const [expenseRange, setExpenseRange] = useState<ExpenseRange>('1M')
 
-  if (loading) return <Stack padding={16}><StyledSkeleton template="card" animation="shimmer" /></Stack>
-
-  if (!data || typeof data !== 'object') {
-    return <Stack padding={16}><StyledEmptyState variant="minimal" illustration="⚠️" title="Data error" /></Stack>
-  }
-
-  const monthly = Array.isArray(data.monthlyTotals) ? data.monthlyTotals : []
-  const validMonthly = monthly.filter(m => m && typeof m === 'object')
-
-  if (validMonthly.length === 0 || !validMonthly.some(m => (Number(m.expense) || 0) > 0 || (Number(m.income) || 0) > 0)) {
+  if (loading) {
     return (
-      <Stack flex={1} padding={16}>
-        <StyledEmptyState variant="minimal" illustration="📈"
-          title="Not enough data yet"
-          description="Trends appear after logging transactions across multiple months" animated />
+      <Stack padding={16}>
+        <StyledSkeleton template="card" animation="shimmer" />
       </Stack>
     )
   }
 
-  // ── Income bar chart ───────────────────────────────────────────────────────
-  const activeIncomeIdx = selectedMonthIdx ?? validMonthly.length - 1
-  const totalIncome = Number(validMonthly[activeIncomeIdx]?.income) || 0
-  const incomeMaxVal = Math.max(...validMonthly.map(m => Number(m.income) || 0), 1)
+  if (!data || typeof data !== 'object') {
+    return (
+      <Stack padding={16}>
+        <StyledEmptyState variant="minimal" illustration="⚠️" title="Data error" />
+      </Stack>
+    )
+  }
 
-  // Active bar = bright lavender/purple, inactive = dim purple
-  const INCOME_ACTIVE   = '#9B97FF'   // bright lavender — active bar
-  const INCOME_INACTIVE = '#4A4580'   // muted dark purple — inactive bars
-  const INCOME_BG       = '#2D2B6B'   // deep indigo card bg
-  const INCOME_TEXT_DIM = 'rgba(255,255,255,0.45)'
+  const monthly = Array.isArray(data.monthlyTotals) ? data.monthlyTotals : []
+  const validMonthly = monthly.filter(m => !!m && typeof m === 'object')
 
-  const incomeBars = validMonthly.map((m, i) => {
-    const val = Number(m.income) || 0
-    // Ensure zero-value bars still render as a short stub (4% of max)
-    const displayVal = val === 0 ? incomeMaxVal * 0.04 : val
-    return {
-      value: displayVal,
-      label: m.month ? m.month.substring(0, 3) : '---',
-      labelWidth: 44,
-      frontColor: i === activeIncomeIdx ? INCOME_ACTIVE : INCOME_INACTIVE,
-      showGradient: i === activeIncomeIdx,
-      gradientColor: i === activeIncomeIdx ? '#C5C2FF' : INCOME_INACTIVE,
-    }
-  })
+  if (
+    validMonthly.length === 0 ||
+    !validMonthly.some(m => (Number(m.expense) || 0) > 0 || (Number(m.income) || 0) > 0)
+  ) {
+    return (
+      <Stack flex={1} padding={16}>
+        <StyledEmptyState
+          variant="minimal"
+          illustration="📈"
+          title="Not enough data yet"
+          description="Trends appear after logging transactions across multiple months"
+          animated
+        />
+      </Stack>
+    )
+  }
 
-  // ── Expense bar chart ──────────────────────────────────────────────────────
-  const rangeCount: Record<ExpenseRange, number> = { '1D': 1, '1W': 1, '1M': 1, '3M': 3, '1Y': 6, 'ALL': 99 }
-  const filteredExpense = validMonthly.slice(-Math.min(rangeCount[expenseRange], validMonthly.length))
-  const expenseMaxVal = Math.max(...filteredExpense.map(m => Number(m.expense) || 0), 1)
+  const avgExpense =
+    validMonthly.reduce((sum, m) => sum + (Number(m.expense) || 0), 0) / validMonthly.length
 
-  const EXPENSE_BG      = '#EEF4F2'   // pale mint card bg
-  const EXPENSE_BAR_TOP = '#F4998A'   // coral/salmon top gradient
-  const EXPENSE_BAR_BOT = '#F76C6C'   // red bottom
-  const EXPENSE_TEXT    = '#8FA3A0'   // muted mint text
+  const maxExp = [...validMonthly].sort(
+    (a, b) => (Number(b.expense) || 0) - (Number(a.expense) || 0)
+  )[0]
 
-  const expenseBars = filteredExpense.map((m) => {
-    const val = Number(m.expense) || 0
-    const displayVal = val === 0 ? expenseMaxVal * 0.04 : val
-    return {
-      value: displayVal,
-      label: m.month ? m.month.substring(0, 3) : '---',
-      labelWidth: 44,
-      frontColor: EXPENSE_BAR_BOT,
-      showGradient: true,
-      gradientColor: EXPENSE_BAR_TOP,
-    }
-  })
+  const nonZeroExp = validMonthly.filter(m => (Number(m.expense) || 0) > 0)
+  const minExp =
+    nonZeroExp.length > 0
+      ? [...nonZeroExp].sort((a, b) => (Number(a.expense) || 0) - (Number(b.expense) || 0))[0]
+      : undefined
 
-  // Chart width: screen minus scroll padding (16x2) minus card padding (20x2)
-  const cardPad = 20
-  const chartWidth = screenWidth - 32 - cardPad * 2
+  const spendingBars = validMonthly.map(m => ({
+    label: m.month?.substring(0, 3) ?? '---',
+    value: Math.max(Number(m.expense) || 0, 0),
+    frontColor: Colors.expense,
+  }))
 
-  // For single-bar views (1D/1W/1M), make the bar fill most of the card width
-  const expenseBarCount = filteredExpense.length
-  const EXPENSE_SPACING = 10
-  const expenseBarWidth = expenseBarCount === 1
-    ? chartWidth - 24
-    : Math.max(20, Math.floor((chartWidth - (expenseBarCount - 1) * EXPENSE_SPACING) / expenseBarCount))
+  const incomeBars = validMonthly.map(m => ({
+    label: m.month?.substring(0, 3) ?? '---',
+    value: Math.max(Number(m.income) || 0, 0),
+    frontColor: Colors.income,
+  }))
+
+  const spendingMax = Math.max(...spendingBars.map(b => b.value), 1)
+  const incomeMax = Math.max(...incomeBars.map(b => b.value), 1)
 
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 20 }}
       showsVerticalScrollIndicator={false}
     >
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          INCOME CARD — deep indigo bg, white text, purple bars
-      ══════════════════════════════════════════════════════════════════════ */}
-      <Stack borderRadius={24} overflow="hidden" backgroundColor={INCOME_BG}
-        style={{ shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
-        <Stack padding={20} paddingBottom={8}>
-          {/* Header */}
-          <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={2}>
-            <StyledText fontSize={24} fontWeight="800" color="#fff" letterSpacing={-0.5}>Income by</StyledText>
-            <MonthlyPill variant="dark" />
-          </Stack>
-          <StyledText fontSize={12} color={INCOME_TEXT_DIM} marginBottom={14}>
-            Viewing last {validMonthly.length} months chart
+      <Stack horizontal gap={12}>
+        <StyledCard
+          flex={1}
+          padding={16}
+          borderRadius={16}
+          backgroundColor={Colors.bgCard}
+          borderWidth={1}
+          borderColor={Colors.border}
+        >
+          <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>
+            AVG MONTHLY
           </StyledText>
-
-          {/* Total */}
-          <StyledText fontSize={34} fontWeight="800" color="#fff" letterSpacing={-1.5} marginBottom={2}>
-            {formatCurrency(totalIncome, symbol)}
+          <StyledText
+            fontSize={20}
+            fontWeight="800"
+            color={Colors.expense}
+            marginTop={6}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {formatCurrency(avgExpense || 0, symbol)}
           </StyledText>
-          <StyledText fontSize={12} color={INCOME_TEXT_DIM} marginBottom={10}>Total income</StyledText>
-        </Stack>
+        </StyledCard>
 
-        {/* Bar chart — dashed grid lines via dashGap prop */}
-        <Stack paddingHorizontal={20} paddingBottom={4}>
-          <BarChart
-            data={incomeBars}
-            barWidth={Math.max(24, Math.floor((chartWidth - (validMonthly.length - 1) * 10) / validMonthly.length))}
-            height={150}
-            width={chartWidth}
-            spacing={10}
-            roundedTop
-            barBorderRadius={12}
-            xAxisLabelTextStyle={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '600' }}
-            backgroundColor="transparent"
-            yAxisThickness={0}
-            xAxisThickness={0}
-            hideYAxisText
-            noOfSections={3}
-            dashGap={6}
-            dashWidth={5}
-            rulesType="dashed"
-            rulesColor="rgba(255,255,255,0.18)"
-            maxValue={incomeMaxVal * 1.25}
-            minValue={0}
-            onPress={(_item: any, index: number) => setSelectedMonthIdx(index)}
-            activeOpacity={0.75}
-          />
-        </Stack>
+        <StyledCard
+          flex={1}
+          padding={16}
+          borderRadius={16}
+          backgroundColor={Colors.bgCard}
+          borderWidth={1}
+          borderColor={Colors.border}
+        >
+          <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>
+            HIGHEST
+          </StyledText>
+          <StyledText fontSize={18} fontWeight="800" color={Colors.expense} marginTop={6}>
+            {maxExp?.month ?? '—'}
+          </StyledText>
+          <StyledText fontSize={12} color={Colors.textMuted} marginTop={2}>
+            {formatCurrency(Number(maxExp?.expense) || 0, symbol)}
+          </StyledText>
+        </StyledCard>
 
-        {/* Month pill row */}
-        <Stack horizontal justifyContent="space-around"
-          paddingHorizontal={20} paddingBottom={20} paddingTop={4}>
-          {validMonthly.map((m, i) => {
-            const label = m.month ? m.month.substring(0, 3) : '---'
-            const isActive = i === activeIncomeIdx
-            return (
-              <StyledPressable key={i} onPress={() => setSelectedMonthIdx(i)}
-                paddingHorizontal={10} paddingVertical={5} borderRadius={16}
-                backgroundColor={isActive ? INCOME_ACTIVE : 'transparent'}
-                alignItems="center" justifyContent="center"
-                minWidth={36}>
-                <StyledText fontSize={11} fontWeight={isActive ? '700' : '500'}
-                  color={isActive ? '#fff' : INCOME_TEXT_DIM}>
-                  {label}
-                </StyledText>
-              </StyledPressable>
-            )
-          })}
-        </Stack>
+        <StyledCard
+          flex={1}
+          padding={16}
+          borderRadius={16}
+          backgroundColor={Colors.bgCard}
+          borderWidth={1}
+          borderColor={Colors.border}
+        >
+          <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>
+            LOWEST
+          </StyledText>
+          <StyledText fontSize={18} fontWeight="800" color={Colors.income} marginTop={6}>
+            {minExp?.month ?? '—'}
+          </StyledText>
+          <StyledText fontSize={12} color={Colors.textMuted} marginTop={2}>
+            {formatCurrency(Number(minExp?.expense) || 0, symbol)}
+          </StyledText>
+        </StyledCard>
       </Stack>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          EXPENSE CARD — pale mint bg, coral gradient bars
-      ══════════════════════════════════════════════════════════════════════ */}
-      <Stack borderRadius={24} backgroundColor={EXPENSE_BG}
-        style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
-        <Stack padding={20} paddingBottom={8}>
-          {/* Header */}
-          <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={2}>
-            <StyledText fontSize={24} fontWeight="800" color="rgba(60,80,75,0.35)" letterSpacing={-0.5}>Expense by</StyledText>
-            <MonthlyPill variant="gray" />
-          </Stack>
-          <StyledText fontSize={12} color={EXPENSE_TEXT} marginBottom={14}>
-            Viewing last {filteredExpense.length} month{filteredExpense.length !== 1 ? 's' : ''} chart
-          </StyledText>
-
-          {/* Total */}
-          <StyledText fontSize={34} fontWeight="800" color="rgba(60,80,75,0.30)" letterSpacing={-1.5} marginBottom={2}>
-            {formatCurrency(data.totalExpense ?? 0, symbol)}
-          </StyledText>
-          <StyledText fontSize={12} color={EXPENSE_TEXT} marginBottom={10}>Total expense</StyledText>
-        </Stack>
-
-        {/* Bar chart */}
-        <Stack paddingHorizontal={20} paddingBottom={4}>
-          <BarChart
-            data={expenseBars}
-            barWidth={expenseBarWidth}
-            height={130}
-            width={chartWidth}
-            spacing={expenseBarCount === 1 ? 0 : 10}
-            roundedTop
-            roundedBottom
-            barBorderRadius={expenseBarCount === 1 ? expenseBarWidth / 2 : 10}
-            xAxisLabelTextStyle={{ color: EXPENSE_TEXT, fontSize: 11, fontWeight: '600' }}
-            backgroundColor="transparent"
-            yAxisThickness={0}
-            xAxisThickness={0}
-            hideYAxisText
-            noOfSections={3}
-            dashGap={6}
-            dashWidth={5}
-            rulesType="dashed"
-            rulesColor="rgba(100,140,130,0.22)"
-            maxValue={expenseMaxVal * 1.25}
-            minValue={0}
-            activeOpacity={0.75}
-          />
-        </Stack>
-
-        {/* Time range selector */}
-        <Stack horizontal justifyContent="space-around"
-          paddingHorizontal={20} paddingBottom={20} paddingTop={4}>
-          {EXPENSE_RANGES.map(r => {
-            const isActive = r === expenseRange
-            return (
-              <StyledPressable key={r} onPress={() => setExpenseRange(r)}
-                paddingHorizontal={12} paddingVertical={7} borderRadius={18}
-                backgroundColor={isActive ? Colors.primary : 'transparent'}
-                alignItems="center" justifyContent="center"
-                minWidth={36}>
-                <StyledText fontSize={12} fontWeight={isActive ? '700' : '500'}
-                  color={isActive ? '#fff' : EXPENSE_TEXT}>
-                  {r}
-                </StyledText>
-              </StyledPressable>
-            )
-          })}
-        </Stack>
+      <Stack gap={8}>
+        <StyledText
+          fontSize={13}
+          fontWeight="700"
+          color={Colors.textMuted}
+          letterSpacing={1.5}
+          paddingHorizontal={4}
+          textTransform="uppercase"
+        >
+          6-Month Spending Trend
+        </StyledText>
+        <TrendCard
+          title="Spending Trend"
+          subtitle="Monthly expenses over the last 6 months"
+          value={formatCurrency(Number(data.totalExpense) || 0, symbol)}
+          valueColor={Colors.expense}
+          bars={spendingBars}
+          maxValue={spendingMax * 1.15}
+        />
       </Stack>
 
+      <Stack gap={8}>
+        <StyledText
+          fontSize={13}
+          fontWeight="700"
+          color={Colors.textMuted}
+          letterSpacing={1.5}
+          paddingHorizontal={4}
+          textTransform="uppercase"
+        >
+          6-Month Income Trend
+        </StyledText>
+        <TrendCard
+          title="Income Trend"
+          subtitle="Monthly income over the last 6 months"
+          value={formatCurrency(Number(data.totalIncome) || 0, symbol)}
+          valueColor={Colors.income}
+          bars={incomeBars}
+          maxValue={incomeMax * 1.15}
+        />
+      </Stack>
     </ScrollView>
   )
 }

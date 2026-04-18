@@ -28,7 +28,6 @@
     "fluent-styles": "1.62.9",
     "react": "18.3.1",
     "react-native": "0.76.0",
-    "react-native-charts-kit": "^1.0.25",
     "react-native-gesture-handler": "~2.20.0",
     "react-native-purchases": "^10.0.1",
     "react-native-reanimated": "~3.16.0",

@@ -5,8 +5,6 @@ import {
   StyledDivider, StyledProgressBar,
   StyledSkeleton, StyledEmptyState, TabBar, StyledPage,
 } from 'fluent-styles'
-import { Dimensions } from 'react-native'
-import { LineChart } from 'react-native-charts-kit'
 import { format } from 'date-fns'
 import { ChevronLeftIcon, ChevronRightIcon } from '../../icons'
 import { IconCircle } from '../../icons/map'
@@ -216,7 +214,7 @@ function IncomeTab({ data, symbol, loading }: {
   )
 }
 
-// ─── TrendsTab: 6-month line chart with key metrics ─────────────────────────────
+// ─── TrendsTab: Monthly breakdown with key metrics ────────────────────────────
 function TrendsTab({ data, symbol, loading }: {
   data: ReturnType<typeof useAnalysis>['data']
   symbol: string; loading: boolean
@@ -231,11 +229,9 @@ function TrendsTab({ data, symbol, loading }: {
   }
 
   const monthly = Array.isArray(data.monthlyTotals) ? data.monthlyTotals : []
-  
-  // Validate monthly data structure
   const validMonthly = monthly.filter(m => m && typeof m === 'object')
-  if (validMonthly.length === 0) {
-    console.warn('TrendsTab: No valid monthly data')
+
+  if (validMonthly.length === 0 || !validMonthly.some(m => (Number(m.expense) || 0) > 0 || (Number(m.income) || 0) > 0)) {
     return (
       <Stack flex={1} padding={16}>
         <StyledEmptyState variant="minimal" illustration="📈"
@@ -245,160 +241,133 @@ function TrendsTab({ data, symbol, loading }: {
     )
   }
 
-  const hasData = validMonthly.some(m => (Number(m.expense) || 0) > 0 || (Number(m.income) || 0) > 0)
-
-  if (!hasData) {
-    return (
-      <Stack flex={1} padding={16}>
-        <StyledEmptyState variant="minimal" illustration="📈"
-          title="Not enough data yet"
-          description="Trends appear after logging transactions across multiple months" animated />
-      </Stack>
-    )
-  }
-
+  // Calculate key metrics
   const nonZeroMonths = validMonthly.filter(m => (Number(m.expense) || 0) > 0)
-  const avgExpense    = nonZeroMonths.length > 0
+  const avgExpense = nonZeroMonths.length > 0
     ? nonZeroMonths.reduce((s, m) => s + (Number(m.expense) || 0), 0) / nonZeroMonths.length : 0
   const maxExp = [...validMonthly].sort((a, b) => (Number(b.expense) || 0) - (Number(a.expense) || 0))[0]
   const minExp = [...validMonthly].filter(m => (Number(m.expense) || 0) > 0).sort((a, b) => (Number(a.expense) || 0) - (Number(b.expense) || 0))[0]
 
-  const screenW = Dimensions.get('window').width
-  const chartW = screenW - 32
-
-  // Prepare data for spending trend with validation
-  const spendingData = {
-    labels: validMonthly.map(m => {
-      try {
-        return m.month && typeof m.month === 'string' ? m.month.substring(0, 3) : '---'
-      } catch {
-        return '---'
-      }
-    }),
-    datasets: [{
-      data: validMonthly.map(m => {
-        const val = Number(m.expense) || 0
-        return (isFinite(val) && val >= 0) ? val : 0
-      }),
-      data2: validMonthly.map(() => 0), // Required by library type
-      color: () => Colors.primary,
-      strokeWidth: 3,
-    }],
-  }
-
-  // Prepare data for income trend with validation
-  const incomeData = {
-    labels: validMonthly.map(m => {
-      try {
-        return m.month && typeof m.month === 'string' ? m.month.substring(0, 3) : '---'
-      } catch {
-        return '---'
-      }
-    }),
-    datasets: [{
-      data: validMonthly.map(m => {
-        const val = Number(m.income) || 0
-        return (isFinite(val) && val >= 0) ? val : 0
-      }),
-      data2: validMonthly.map(() => 0), // Required by library type
-      color: () => Colors.income,
-      strokeWidth: 3,
-    }],
-  }
-
-  const chartConfig = {
-    backgroundColor: Colors.bgCard,
-    backgroundGradientFrom: Colors.bgCard,
-    backgroundGradientTo: Colors.bgCard,
-    color: () => Colors.textMuted,
-    labelColor: () => Colors.textMuted,
-    decimalPlaces: 0,
-    propsForLabels: {
-      fontSize: 11,
-      fontWeight: '600',
-    },
+  // Helper: calculate trend percentage
+  const calculateTrend = (current: number, previous: number | undefined): { direction: string; percent: string } | null => {
+    if (!previous || previous === 0) return null
+    const change = ((current - previous) / previous) * 100
+    return {
+      direction: change >= 0 ? '▲' : '▼',
+      percent: `${Math.abs(change).toFixed(0)}%`
+    }
   }
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 20 }} showsVerticalScrollIndicator={false}>
-      {/* Key metrics */}
+      {/* Key metrics cards */}
       <Stack gap={12}>
-        <Stack horizontal flex={1} gap={12}>
-          <StyledCard flex={1} padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
+        <Stack horizontal gap={12}>
+          <StyledCard flex={1} padding={14} borderRadius={14} backgroundColor={Colors.bgCard}
             borderWidth={1} borderColor={Colors.border}>
             <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>AVG MONTHLY</StyledText>
-            <StyledText fontSize={22} fontWeight="800" color={Colors.expense} marginTop={6} letterSpacing={-0.5} numberOfLines={1} adjustsFontSizeToFit>
+            <StyledText fontSize={18} fontWeight="800" color={Colors.expense} marginTop={4} letterSpacing={-0.5} numberOfLines={1} adjustsFontSizeToFit>
               {formatCurrency(avgExpense, symbol)}
             </StyledText>
           </StyledCard>
-          <StyledCard flex={1} padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
+          <StyledCard flex={1} padding={14} borderRadius={14} backgroundColor={Colors.bgCard}
             borderWidth={1} borderColor={Colors.border}>
             <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>HIGHEST</StyledText>
-            <StyledText fontSize={16} fontWeight="800" color={Colors.expense} marginTop={6}>{maxExp?.month}</StyledText>
-            <StyledText fontSize={12} color={Colors.textMuted} marginTop={2} numberOfLines={1} adjustsFontSizeToFit>
+            <StyledText fontSize={14} fontWeight="800" color={Colors.expense} marginTop={4}>{maxExp?.month}</StyledText>
+            <StyledText fontSize={11} color={Colors.textMuted} marginTop={2} numberOfLines={1} adjustsFontSizeToFit>
               {formatCurrency(maxExp?.expense ?? 0, symbol)}
             </StyledText>
           </StyledCard>
-          <StyledCard flex={1} padding={16} borderRadius={16} backgroundColor={Colors.bgCard}
+          <StyledCard flex={1} padding={14} borderRadius={14} backgroundColor={Colors.bgCard}
             borderWidth={1} borderColor={Colors.border}>
             <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>LOWEST</StyledText>
-            <StyledText fontSize={16} fontWeight="800" color={Colors.income} marginTop={6}>{minExp?.month}</StyledText>
-            <StyledText fontSize={12} color={Colors.textMuted} marginTop={2} numberOfLines={1} adjustsFontSizeToFit>
+            <StyledText fontSize={14} fontWeight="800" color={Colors.income} marginTop={4}>{minExp?.month}</StyledText>
+            <StyledText fontSize={11} color={Colors.textMuted} marginTop={2} numberOfLines={1} adjustsFontSizeToFit>
               {formatCurrency(minExp?.expense ?? 0, symbol)}
             </StyledText>
           </StyledCard>
         </Stack>
       </Stack>
 
-      {/* 6-month spending trend */}
-      {spendingData?.datasets?.[0]?.data?.length > 0 && (
-        <Stack gap={8}>
-          <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
-            6-MONTH SPENDING TREND
-          </StyledText>
-          <StyledCard padding={12} borderRadius={16} backgroundColor={Colors.bgCard}
-            borderWidth={1} borderColor={Colors.border}>
-            <LineChart
-              data={spendingData}
-              width={chartW}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              withDots={true}
-              withInnerLines={false}
-              segments={4}
-              fromZero
-              yAxisLabel=""
-              yAxisSuffix=""
-            />
-          </StyledCard>
-        </Stack>
-      )}
+      {/* Monthly breakdown section */}
+      <Stack gap={12}>
+        <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1.5} paddingHorizontal={4} textTransform="uppercase">
+          Monthly Breakdown
+        </StyledText>
 
-      {/* 6-month income trend */}
-      {incomeData?.datasets?.[0]?.data?.length > 0 && (
-        <Stack gap={8}>
-          <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={1} paddingHorizontal={4}>
-            6-MONTH INCOME TREND
-          </StyledText>
-          <StyledCard padding={12} borderRadius={16} backgroundColor={Colors.bgCard}
-            borderWidth={1} borderColor={Colors.border}>
-            <LineChart
-              data={incomeData}
-              width={chartW}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              withDots={true}
-              withInnerLines={false}
-              segments={4}
-              fromZero
-              yAxisLabel=""
-              yAxisSuffix=""
-            />
-          </StyledCard>
+        <Stack gap={10}>
+          {[...validMonthly].reverse().map((month, index) => {
+            const prevMonth = [...validMonthly].reverse()[index + 1]
+            const currentExpense = Number(month.expense) || 0
+            const currentIncome = Number(month.income) || 0
+            const monthNet = currentIncome - currentExpense
+            const expenseTrend = calculateTrend(currentExpense, Number(prevMonth?.expense) || undefined)
+            const incomeTrend = calculateTrend(currentIncome, Number(prevMonth?.income) || undefined)
+
+            return (
+              <StyledCard key={month.month || index} padding={14} borderRadius={14} backgroundColor={Colors.bgCard}
+                borderWidth={1} borderColor={Colors.border}>
+                {/* Month header with net balance */}
+                <Stack horizontal justifyContent="space-between" alignItems="center" marginBottom={10}>
+                  <StyledText fontSize={13} fontWeight="700" color={Colors.textPrimary}>{month.month}</StyledText>
+                  <Stack horizontal alignItems="center" gap={4}>
+                    <StyledText fontSize={11} fontWeight="600" color={monthNet >= 0 ? Colors.income : Colors.expense}>
+                      {monthNet >= 0 ? '▲' : '▼'}
+                    </StyledText>
+                    <StyledText fontSize={12} fontWeight="700" color={Colors.textPrimary}>
+                      {formatCurrency(Math.abs(monthNet), symbol)}
+                    </StyledText>
+                  </Stack>
+                </Stack>
+
+                {/* Month metrics */}
+                <Stack gap={8}>
+                  {/* Spending row */}
+                  <Stack horizontal justifyContent="space-between" alignItems="center">
+                    <Stack horizontal alignItems="center" gap={6}>
+                      <StyledText fontSize={11} color={Colors.textMuted}>Spending</StyledText>
+                      {expenseTrend && (
+                        <StyledText fontSize={9} fontWeight="600" color={expenseTrend.direction === '▲' ? Colors.expense : Colors.income}>
+                          {expenseTrend.direction} {expenseTrend.percent}
+                        </StyledText>
+                      )}
+                    </Stack>
+                    <StyledText fontSize={12} fontWeight="700" color={Colors.expense}>
+                      {formatCurrency(currentExpense, symbol)}
+                    </StyledText>
+                  </Stack>
+
+                  {/* Income row */}
+                  <Stack horizontal justifyContent="space-between" alignItems="center">
+                    <Stack horizontal alignItems="center" gap={6}>
+                      <StyledText fontSize={11} color={Colors.textMuted}>Income</StyledText>
+                      {incomeTrend && (
+                        <StyledText fontSize={9} fontWeight="600" color={incomeTrend.direction === '▲' ? Colors.income : Colors.expense}>
+                          {incomeTrend.direction} {incomeTrend.percent}
+                        </StyledText>
+                      )}
+                    </Stack>
+                    <StyledText fontSize={12} fontWeight="700" color={Colors.income}>
+                      {formatCurrency(currentIncome, symbol)}
+                    </StyledText>
+                  </Stack>
+
+                  {/* Divider */}
+                  <StyledDivider borderBottomColor={Colors.border} marginVertical={6} />
+
+                  {/* Net balance row (highlighted) */}
+                  <Stack horizontal justifyContent="space-between" alignItems="center">
+                    <StyledText fontSize={11} fontWeight="700" color={Colors.textMuted}>Net Balance</StyledText>
+                    <StyledText fontSize={12} fontWeight="800" color={monthNet >= 0 ? Colors.income : Colors.expense}>
+                      {monthNet >= 0 ? '+' : ''}{formatCurrency(monthNet, symbol)}
+                    </StyledText>
+                  </Stack>
+                </Stack>
+              </StyledCard>
+            )
+          })}
         </Stack>
-      )}
+      </Stack>
     </ScrollView>
   )
 }

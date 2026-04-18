@@ -1,8 +1,8 @@
-// ─── Product identifiers (match App Store Connect / Play Console) ─────────────
+// ─── Product identifiers (match RevenueCat setup) ──────────────────────────────
 export const PREMIUM_PRODUCTS = {
-  MONTHLY:   'com.claro.finance.premium.monthly',
-  YEARLY:    'com.claro.finance.premium.yearly',
-  ONE_TIME:  'com.claro.finance.premium.lifetime',
+  MONTHLY:   'claro_premium_monthly',
+  YEARLY:    'claro_premium_yearly',
+  ONE_TIME:  'claro_premium_lifetime',
 } as const
 
 // ─── Pricing display (update to match App Store prices) ───────────────────────

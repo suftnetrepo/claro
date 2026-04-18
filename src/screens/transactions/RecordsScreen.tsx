@@ -3,11 +3,12 @@ import { SectionList, RefreshControl } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   Stack, StyledText, StyledPressable, StyledDivider,
-  StyledEmptyState, StyledSkeleton, StyledCard,
+  StyledEmptyState, StyledSkeleton, StyledCard, StyledPage,
 } from 'fluent-styles'
 import { dialogueService, toastService } from 'fluent-styles'
 import { router, useFocusEffect } from 'expo-router'
 import { format } from 'date-fns'
+import { Text } from '../../components'
 import { IconCircle } from '../../icons/map'
 import { ChevronLeftIcon, ChevronRightIcon, AddIcon, BellIcon } from '../../icons'
 import { Colors, useColors } from '../../constants'
@@ -31,8 +32,8 @@ function HomeHeader({ symbol }: { symbol: string }) {
       {/* Top row */}
       <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={20}>
         <Stack gap={2}>
-          <StyledText fontSize={12} color={Colors.textMuted} fontWeight="500">Welcome back</StyledText>
-          <StyledText fontSize={20} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Claro</StyledText>
+          <Text variant="subLabel" color={Colors.textMuted}>Welcome back</Text>
+          <Text variant="header" color={Colors.textPrimary} letterSpacing={-0.5}>Claro</Text>
         </Stack>
         <StyledPressable width={40} height={40} borderRadius={20}
           backgroundColor={Colors.bgMuted} alignItems="center" justifyContent="center">
@@ -43,12 +44,12 @@ function HomeHeader({ symbol }: { symbol: string }) {
       {/* Balance card */}
       <StyledCard padding={18} borderRadius={20} backgroundColor={Colors.primary}
         style={{ shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
-        <StyledText fontSize={13} color="rgba(255,255,255,0.75)" fontWeight="600" marginBottom={6}>
+        <Text variant="label" color="rgba(255,255,255,0.75)" marginBottom={6}>
           Total Balance
-        </StyledText>
-        <StyledText fontSize={34} fontWeight="800" color={Colors.white} letterSpacing={-1} marginBottom={4}>
+        </Text>
+        <Text variant="display" color={Colors.white} letterSpacing={-1} marginBottom={4}>
           {formatCurrency(totalBalance, symbol)}
-        </StyledText>
+        </Text>
 
         {/* Month nav inside card */}
         <Stack horizontal alignItems="center" justifyContent="space-between" marginTop={12}>
@@ -57,9 +58,9 @@ function HomeHeader({ symbol }: { symbol: string }) {
             onPress={prevMonth}>
             <ChevronLeftIcon size={16} color={Colors.white} strokeWidth={2.5} />
           </StyledPressable>
-          <StyledText fontSize={13} fontWeight="700" color="rgba(255,255,255,0.9)">
+          <Text variant="label" color="rgba(255,255,255,0.9)">
             {format(selectedMonth, 'MMMM yyyy')}
-          </StyledText>
+          </Text>
           <StyledPressable width={32} height={32} borderRadius={16}
             backgroundColor={isNow ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'}
             alignItems="center" justifyContent="center"
@@ -83,36 +84,36 @@ function MonthlySummary({ income, expense, symbol }: {
         borderWidth={1} borderColor={Colors.border}
         style={{ shadowColor: Colors.border, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.8, shadowRadius: 4 }}>
         <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={10}>
-          <StyledText fontSize={13} fontWeight="700" color={Colors.expense}>Expense</StyledText>
+          <Text variant="label" color={Colors.expense}>Expense</Text>
           <Stack width={28} height={28} borderRadius={14}
             backgroundColor={Colors.primary} alignItems="center" justifyContent="center">
-            <StyledText fontSize={14} color={Colors.white}>↗</StyledText>
+            <Text variant="button" color={Colors.white}>↗</Text>
           </Stack>
         </Stack>
-        <StyledText fontSize={10} color={Colors.textMuted} fontWeight="600" letterSpacing={0.5} marginBottom={4}>
+        <Text variant="overline" color={Colors.textMuted} letterSpacing={0.5} marginBottom={4}>
           THIS MONTH
-        </StyledText>
-        <StyledText fontSize={18} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>
+        </Text>
+        <Text variant="metric" color={Colors.textPrimary} letterSpacing={-0.5}>
           {formatCurrency(expense, symbol)}
-        </StyledText>
+        </Text>
       </StyledCard>
 
       <StyledCard flex={1} padding={16} borderRadius={20} backgroundColor={Colors.bgCard}
         borderWidth={1} borderColor={Colors.border}
         style={{ shadowColor: Colors.border, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.8, shadowRadius: 4 }}>
         <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={10}>
-          <StyledText fontSize={13} fontWeight="700" color={Colors.income}>Income</StyledText>
+          <Text variant="label" color={Colors.income}>Income</Text>
           <Stack width={28} height={28} borderRadius={14}
             backgroundColor={Colors.primary} alignItems="center" justifyContent="center">
-            <StyledText fontSize={14} color={Colors.white}>↗</StyledText>
+            <Text variant="button" color={Colors.white}>↗</Text>
           </Stack>
         </Stack>
-        <StyledText fontSize={10} color={Colors.textMuted} fontWeight="600" letterSpacing={0.5} marginBottom={4}>
+        <Text variant="overline" color={Colors.textMuted} letterSpacing={0.5} marginBottom={4}>
           THIS MONTH
-        </StyledText>
-        <StyledText fontSize={18} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>
+        </Text>
+        <Text variant="metric" color={Colors.textPrimary} letterSpacing={-0.5}>
           {formatCurrency(income, symbol)}
-        </StyledText>
+        </Text>
       </StyledCard>
     </Stack>
   )
@@ -202,11 +203,12 @@ export default function RecordsScreen() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack flex={1}>
 
-        <HomeHeader symbol={symbol} />
-        <MonthlySummary income={totalIncome} expense={totalExpense} symbol={symbol} />
+          <HomeHeader symbol={symbol} />
+          <MonthlySummary income={totalIncome} expense={totalExpense} symbol={symbol} />
 
         {/* Latest transactions header */}
         <Stack horizontal alignItems="center" justifyContent="space-between"
@@ -257,7 +259,8 @@ export default function RecordsScreen() {
           <AddIcon size={26} color={Colors.white} strokeWidth={2.5} />
         </StyledPressable>
 
-      </Stack>
-    </GestureHandlerRootView>
+        </Stack>
+      </GestureHandlerRootView>
+    </StyledPage>
   )
 }

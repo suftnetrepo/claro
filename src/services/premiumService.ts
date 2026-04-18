@@ -1,21 +1,19 @@
 /**
  * premiumService.ts
  *
- * Current: SecureStore-based local entitlement + mock purchase flow.
+ * RevenueCat-powered premium entitlement management.
  *
- * ─── To go live with RevenueCat ───────────────────────────────────────────────
- * 1. npm install react-native-purchases
- * 2. In App Store Connect, create subscription group "Claro Premium" with
- *    the 3 product IDs defined in constants/premium.ts
- * 3. Replace the 4 functions marked REVENUECAT_SWAP below
- * 4. Delete MockPaymentSheet.tsx
- * 5. In PremiumScreen.tsx, remove MockPaymentSheet import + usage
- * 6. In SettingsScreen.tsx, remove "Reset premium (dev)" row
- * 7. Remove this premiumService.ts comment block
- * ─────────────────────────────────────────────────────────────────────────────
+ * Configuration:
+ * - API Key: Provided on app initialization (app/_layout.tsx)
+ * - Entitlement ID: "premium"
+ * - Offering ID: "default"
+ * - Product IDs: claro_premium_{monthly|yearly|lifetime}
  */
-import * as SecureStore from 'expo-secure-store'
-import { PREMIUM_STORAGE_KEY } from '../constants/premium'
+
+import Purchases, {
+  CustomerInfo,
+  PurchasesError,
+} from 'react-native-purchases'
 
 export type PremiumPlan = 'monthly' | 'yearly' | 'lifetime' | null
 
@@ -26,23 +24,37 @@ export interface EntitlementInfo {
   purchasedAt: string | null
 }
 
-// ─── Read entitlement ─────────────────────────────────────────────────────────
+const ENTITLEMENT_ID = 'premium'
+const OFFERING_ID = 'default'
+
+// Map product IDs to plan types
+const getPlanFromProductId = (productId: string): PremiumPlan => {
+  if (productId.includes('lifetime')) return 'lifetime'
+  if (productId.includes('yearly') || productId.includes('annual')) return 'yearly'
+  return 'monthly'
+}
+
+// ─── Read entitlement from RevenueCat ─────────────────────────────────────────
 
 export const getEntitlement = async (): Promise<EntitlementInfo> => {
   try {
-    const raw = await SecureStore.getItemAsync(PREMIUM_STORAGE_KEY)
-    if (!raw) return { isActive: false, plan: null, expiresAt: null, purchasedAt: null }
+    const info = await Purchases.getCustomerInfo()
+    const entitlement = info.entitlements.active[ENTITLEMENT_ID]
 
-    const info: EntitlementInfo = JSON.parse(raw)
-
-    // Check expiry for subscriptions
-    if (info.expiresAt && new Date(info.expiresAt) < new Date()) {
-      await clearEntitlement()
+    if (!entitlement) {
       return { isActive: false, plan: null, expiresAt: null, purchasedAt: null }
     }
 
-    return info
-  } catch {
+    // EntitlementInfo is active
+    const plan = getPlanFromProductId(entitlement.productIdentifier)
+    return {
+      isActive: true,
+      plan,
+      expiresAt: entitlement.expirationDate,
+      purchasedAt: new Date().toISOString(),
+    }
+  } catch (err: any) {
+    console.error('[getEntitlement]', err?.message)
     return { isActive: false, plan: null, expiresAt: null, purchasedAt: null }
   }
 }
@@ -52,78 +64,102 @@ export const isPremiumActive = async (): Promise<boolean> => {
   return info.isActive
 }
 
-// ─── Write / clear entitlement ────────────────────────────────────────────────
-
-export const grantEntitlement = async (plan: PremiumPlan, months?: number): Promise<void> => {
-  const now = new Date()
-  const expiresAt = plan === 'lifetime' ? null
-    : plan === 'yearly'  ? new Date(now.setFullYear(now.getFullYear() + 1)).toISOString()
-    : new Date(now.setMonth(now.getMonth() + (months ?? 1))).toISOString()
-
-  const info: EntitlementInfo = {
-    isActive:    true,
-    plan,
-    expiresAt,
-    purchasedAt: new Date().toISOString(),
-  }
-  await SecureStore.setItemAsync(PREMIUM_STORAGE_KEY, JSON.stringify(info))
-}
-
-export const clearEntitlement = async (): Promise<void> => {
-  await SecureStore.deleteItemAsync(PREMIUM_STORAGE_KEY)
-}
-
 // ─── Purchase functions ───────────────────────────────────────────────────────
-// REVENUECAT_SWAP: Replace each function body with the RevenueCat equivalent.
-// Signatures must stay the same — no other files need updating.
 
 export const purchaseMonthly = async (): Promise<boolean> => {
-  // REVENUECAT_SWAP ↓
-  // const offerings = await Purchases.getOfferings()
-  // const pkg = offerings.current?.monthly
-  // if (!pkg) throw new Error('Monthly package not found')
-  // await Purchases.purchasePackage(pkg)
-  // const info = await Purchases.getCustomerInfo()
-  // return !!info.entitlements.active['premium']
-  await grantEntitlement('monthly', 1)
-  return true
+  try {
+    const offerings = await Purchases.getOfferings()
+    if (!offerings.current) {
+      throw new Error('No offerings available')
+    }
+    const pkg = offerings.current.monthly
+
+    if (!pkg) {
+      throw new Error('Monthly package not found in offerings')
+    }
+
+    await Purchases.purchasePackage(pkg)
+    const info = await Purchases.getCustomerInfo()
+    return !!info.entitlements.active[ENTITLEMENT_ID]
+  } catch (err: any) {
+    if (err?.code === 'PurchaseCancelledError') {
+      console.info('[purchaseMonthly] User cancelled purchase')
+      return false
+    }
+    console.error('[purchaseMonthly]', err?.message)
+    throw err
+  }
 }
 
 export const purchaseYearly = async (): Promise<boolean> => {
-  // REVENUECAT_SWAP ↓
-  // const offerings = await Purchases.getOfferings()
-  // const pkg = offerings.current?.annual
-  // if (!pkg) throw new Error('Annual package not found')
-  // await Purchases.purchasePackage(pkg)
-  // const info = await Purchases.getCustomerInfo()
-  // return !!info.entitlements.active['premium']
-  await grantEntitlement('yearly')
-  return true
+  try {
+    const offerings = await Purchases.getOfferings()
+    if (!offerings.current) {
+      throw new Error('No offerings available')
+    }
+    const pkg = offerings.current.annual
+
+    if (!pkg) {
+      throw new Error('Annual package not found in offerings')
+    }
+
+    await Purchases.purchasePackage(pkg)
+    const info = await Purchases.getCustomerInfo()
+    return !!info.entitlements.active[ENTITLEMENT_ID]
+  } catch (err: any) {
+    if (err?.code === 'PurchaseCancelledError') {
+      console.info('[purchaseYearly] User cancelled purchase')
+      return false
+    }
+    console.error('[purchaseYearly]', err?.message)
+    throw err
+  }
 }
 
 export const purchaseLifetime = async (): Promise<boolean> => {
-  // REVENUECAT_SWAP ↓
-  // const offerings = await Purchases.getOfferings()
-  // const pkg = offerings.current?.lifetime
-  // if (!pkg) throw new Error('Lifetime package not found')
-  // await Purchases.purchasePackage(pkg)
-  // const info = await Purchases.getCustomerInfo()
-  // return !!info.entitlements.active['premium']
-  await grantEntitlement('lifetime')
-  return true
+  try {
+    const offerings = await Purchases.getOfferings()
+    if (!offerings.current) {
+      throw new Error('No offerings available')
+    }
+    const pkg = offerings.current.lifetime
+
+    if (!pkg) {
+      throw new Error('Lifetime package not found in offerings')
+    }
+
+    await Purchases.purchasePackage(pkg)
+    const info = await Purchases.getCustomerInfo()
+    return !!info.entitlements.active[ENTITLEMENT_ID]
+  } catch (err: any) {
+    if (err?.code === 'PurchaseCancelledError') {
+      console.info('[purchaseLifetime] User cancelled purchase')
+      return false
+    }
+    console.error('[purchaseLifetime]', err?.message)
+    throw err
+  }
 }
 
 export const restorePurchases = async (): Promise<boolean> => {
-  // REVENUECAT_SWAP ↓
-  // const info = await Purchases.restorePurchases()
-  // const active = !!info.entitlements.active['premium']
-  // if (active) {
-  //   const plan = info.entitlements.active['premium'].productIdentifier
-  //     .includes('lifetime') ? 'lifetime'
-  //     : info.entitlements.active['premium'].productIdentifier.includes('annual') ? 'yearly'
-  //     : 'monthly'
-  //   await grantEntitlement(plan)
-  // }
-  // return active
-  return false
+  try {
+    const info = await Purchases.restorePurchases()
+    return !!info.entitlements.active[ENTITLEMENT_ID]
+  } catch (err: any) {
+    console.error('[restorePurchases]', err?.message)
+    return false
+  }
 }
+
+// ─── Manual clear (dev only) ──────────────────────────────────────────────────
+
+export const clearEntitlement = async (): Promise<void> => {
+  // Dev-only: logs out current user so they can test paywall again
+  // RevenueCat will treat them as a new user
+  try {
+    await Purchases.logOut()
+  } catch (err: any) {
+    console.error('[clearEntitlement]', err?.message)
+  }
+}
+

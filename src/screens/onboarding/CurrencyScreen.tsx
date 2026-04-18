@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { FlatList } from 'react-native'
 import { router } from 'expo-router'
-import { Stack, StyledText, StyledPressable, StyledSearchBar, StyledDivider, StyleShape } from 'fluent-styles'
+import { Stack, StyledText, StyledPressable, StyledSearchBar, StyledDivider, StyleShape, StyledPage } from 'fluent-styles'
 import { CheckIcon } from '../../icons'
 import { Colors, useColors, Fonts, CURRENCIES } from '../../constants'
 import * as SecureStore from 'expo-secure-store'
@@ -34,7 +34,8 @@ export default function CurrencyScreen() {
   }
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1}>
 
       <Stack padding={24} paddingTop={64} paddingBottom={8}>
         <StyledText fontSize={26} fontWeight="800" fontFamily={Fonts.extraBold} color={Colors.textPrimary} letterSpacing={-0.5}>
@@ -105,6 +106,7 @@ export default function CurrencyScreen() {
         </StyledPressable>
       </Stack>
 
-    </Stack>
+      </Stack>
+    </StyledPage>
   )
 }

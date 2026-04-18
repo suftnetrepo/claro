@@ -48,43 +48,44 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol 
   return (
     <Stack>
       {/* Amount display */}
-      <Stack alignItems="center" justifyContent="center" paddingVertical={8} paddingHorizontal={24}>
-        <Stack horizontal alignItems="flex-end" gap={4}>
-          <StyledText fontSize={20} fontWeight="700" color={Colors.textMuted} marginBottom={8}>
+      <Stack alignItems="center" justifyContent="center" paddingVertical={32} paddingHorizontal={24}>
+        <Stack horizontal alignItems="baseline" gap={2}>
+          <StyledText fontSize={22} fontWeight="700" color={Colors.textMuted}>
             {symbol}
           </StyledText>
           <StyledText
-            fontSize={displayValue.length > 8 ? 38 : 52}
+            fontSize={displayValue.length > 8 ? 40 : 56}
             fontWeight="800"
             color={Colors.textPrimary}
-            letterSpacing={-2}
+            letterSpacing={-1.5}
+            lineHeight={displayValue.length > 8 ? 48 : 62}
           >
             {displayValue}
           </StyledText>
         </Stack>
       </Stack>
 
-      {/* Keypad grid — full width, roomy keys like mockup */}
-      <Stack paddingHorizontal={20} paddingBottom={8} gap={8}>
+      {/* Keypad grid — softer borders and visual weight */}
+      <Stack paddingHorizontal={20} paddingBottom={8} gap={6}>
         {KEYS.map((row, ri) => (
-          <Stack key={ri} horizontal gap={8}>
+          <Stack key={ri} horizontal gap={6}>
             {row.map((key) => (
               <StyledPressable
                 key={key}
                 flex={1}
-                height={72}
-                borderRadius={18}
-                backgroundColor={key === '⌫' ? Colors.expenseLight : Colors.bgCard}
-                borderWidth={1}
-                borderColor={key === '⌫' ? Colors.expenseLight : Colors.border}
+                height={68}
+                borderRadius={16}
+                backgroundColor={key === '⌫' ? Colors.expenseLight + '40' : Colors.bgCard}
+                borderWidth={0.5}
+                borderColor={key === '⌫' ? Colors.expense + '30' : Colors.border + '50'}
                 alignItems="center"
                 justifyContent="center"
                 onPress={() => handleKey(key)}
               >
                 {key === '⌫' ? (
-                  <BackspaceIcon size={22} color={Colors.expense} />
+                  <BackspaceIcon size={20} color={Colors.expense + 'CC'} />
                 ) : (
-                  <StyledText fontSize={24} fontWeight="600" color={Colors.textPrimary}>
+                  <StyledText fontSize={22} fontWeight="600" color={Colors.textPrimary}>
                     {key}
                   </StyledText>
                 )}

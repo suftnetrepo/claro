@@ -3,7 +3,7 @@ import { router } from 'expo-router'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import {
   Stack, StyledText, StyledPressable, StyledScrollView, StyledCard,
-  StyledSkeleton, StyledEmptyState, StyledProgressBar, StyledDivider,
+  StyledSkeleton, StyledEmptyState, StyledProgressBar, StyledDivider, StyledPage,
 } from 'fluent-styles'
 import { dialogueService, toastService } from 'fluent-styles'
 import { format } from 'date-fns'
@@ -41,8 +41,9 @@ export default function BudgetsScreen() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack flex={1}>
 
         <Stack horizontal alignItems="center" justifyContent="space-between" paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
           <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Budgets</StyledText>
@@ -133,11 +134,13 @@ export default function BudgetsScreen() {
               </StyledCard>
             )}
 
-            {/* Premium banner when at limit */}
-            {!premium.canAddBudget((data ?? []).length) && (
+            {/* Premium upsell: always show for free users */}
+            {!premium.isPremium && (
               <PremiumBanner
-                message={`Free plan: ${premium.limits.BUDGETS} budget max`}
-                subtext="Upgrade for unlimited budgets"
+                message={`Free: ${premium.limits.BUDGETS} budget per month`}
+                subtext={premium.canAddBudget((data ?? []).length) 
+                  ? "Upgrade for unlimited" 
+                  : "Upgrade to add more budgets this month"}
               />
             )}
 
@@ -181,7 +184,8 @@ export default function BudgetsScreen() {
 
 
 
-      </Stack>
-    </GestureHandlerRootView>
+        </Stack>
+      </GestureHandlerRootView>
+    </StyledPage>
   )
 }

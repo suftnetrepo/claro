@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Vibration } from 'react-native'
 import { router } from 'expo-router'
-import { Stack, StyledText, StyledPressable, StyleShape } from 'fluent-styles'
+import { Stack, StyledText, StyledPressable, StyleShape, StyledPage } from 'fluent-styles'
 import { LockIcon, BackspaceIcon, FingerprintIcon } from '../../icons'
 import { Colors, useColors, CONFIG, Fonts } from '../../constants'
 import { verifyPin, authenticateWithBiometric, isBiometricEnabled, isBiometricAvailable } from '../../utils/security'
@@ -66,7 +66,8 @@ export default function LockScreen() {
   }, [isLockedOut, lockedUntil])
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg} alignItems="center" justifyContent="center" paddingHorizontal={32}>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1} alignItems="center" justifyContent="center" paddingHorizontal={32}>
       <StyleShape cycle size={68} backgroundColor={Colors.accent} alignItems="center" justifyContent="center" marginBottom={20}>
         <LockIcon size={28} color={Colors.primary} />
       </StyleShape>
@@ -112,6 +113,7 @@ export default function LockScreen() {
           )
         })}
       </Stack>
-    </Stack>
+      </Stack>
+    </StyledPage>
   )
 }

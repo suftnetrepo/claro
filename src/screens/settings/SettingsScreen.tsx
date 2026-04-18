@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { router } from 'expo-router'
-import { FlatList } from 'react-native'
+import { FlatList, ActivityIndicator } from 'react-native'
 import {
   Stack, StyledText, StyledPressable, StyledScrollView,
-  StyledCard, StyledDivider, Switch, Popup,
+  StyledCard, StyledDivider, Switch, Popup, StyledPage,
 } from 'fluent-styles'
+import { Text } from '../../components'
 import { toastService, dialogueService } from 'fluent-styles'
 import {
   ChevronRightIcon, CheckIcon, LockIcon, FingerprintIcon,
@@ -27,13 +28,13 @@ import {
 
 // ─── Section header ───────────────────────────────────────────────────────────
 const SectionHeader: React.FC<{ label: string }> = ({ label }) => (
-  <StyledText
-    fontSize={11} fontWeight="700" color={Colors.textMuted}
+  <Text
+    variant="overline" color={Colors.textMuted}
     letterSpacing={1}
     paddingHorizontal={20} paddingTop={24} paddingBottom={8}
   >
     {label.toUpperCase()}
-  </StyledText>
+  </Text>
 )
 
 // ─── Row — navigates or shows chevron ────────────────────────────────────────
@@ -41,28 +42,44 @@ const SettingsRow: React.FC<{
   icon:     React.ReactNode
   label:    string
   value?:   string
+  subtitle?: string
   onPress:  () => void
   danger?:  boolean
-}> = ({ icon, label, value, onPress, danger = false }) => (
-  <StyledPressable
-    flexDirection="row" alignItems="center" gap={14}
-    paddingHorizontal={20} paddingVertical={14}
-    backgroundColor={Colors.bgCard}
-    onPress={onPress}
-  >
-    <Stack width={28} height={28} alignItems="center" justifyContent="center">
-      {icon}
-    </Stack>
-    <StyledText flex={1} fontSize={15} fontWeight="600"
-      color={danger ? Colors.expense : Colors.textPrimary}>
-      {label}
-    </StyledText>
-    {value ? (
-      <StyledText fontSize={14} color={Colors.textMuted} marginRight={6}>{value}</StyledText>
-    ) : null}
-    <ChevronRightIcon size={16} color={Colors.textMuted} strokeWidth={2} />
-  </StyledPressable>
-)
+  loading?:  boolean
+}> = ({ icon, label, value, subtitle, onPress, danger = false, loading = false }) => {
+  const Colors = useColors()
+  return (
+    <StyledPressable
+      flexDirection="row" alignItems="center" gap={14}
+      paddingHorizontal={20} paddingVertical={14}
+      backgroundColor={Colors.bgCard}
+      onPress={onPress}
+      disabled={loading}
+      opacity={loading ? 0.6 : 1}
+    >
+      <Stack width={28} height={28} alignItems="center" justifyContent="center">
+        {icon}
+      </Stack>
+      <Stack flex={1} gap={subtitle ? 2 : 0}>
+        <Text variant="button"
+          color={danger ? Colors.expense : Colors.textPrimary}>
+          {label}
+        </Text>
+        {subtitle ? (
+          <Text variant="bodySmall" color={Colors.textMuted}>{subtitle}</Text>
+        ) : null}
+      </Stack>
+      {value && !loading ? (
+        <Text variant="body" color={Colors.textMuted} marginRight={6}>{value}</Text>
+      ) : null}
+      {loading ? (
+        <ActivityIndicator size="small" color={Colors.primary} />
+      ) : (
+        <ChevronRightIcon size={16} color={Colors.textMuted} strokeWidth={2} />
+      )}
+    </StyledPressable>
+  )
+}
 
 // ─── Row — toggle switch ──────────────────────────────────────────────────────
 const SwitchRow: React.FC<{
@@ -82,9 +99,9 @@ const SwitchRow: React.FC<{
       {icon}
     </Stack>
     <Stack flex={1} gap={2}>
-      <StyledText fontSize={15} fontWeight="600" color={Colors.textPrimary}>{label}</StyledText>
+      <Text variant="button" color={Colors.textPrimary}>{label}</Text>
       {subtitle ? (
-        <StyledText fontSize={12} color={Colors.textMuted}>{subtitle}</StyledText>
+        <Text variant="bodySmall" color={Colors.textMuted}>{subtitle}</Text>
       ) : null}
     </Stack>
     <Switch
@@ -120,13 +137,13 @@ const CurrencyPicker: React.FC<{
             backgroundColor={Colors.accent}
             alignItems="center" justifyContent="center"
           >
-            <StyledText fontSize={16} fontWeight="700" color={Colors.primary}>
+            <Text variant="button" color={Colors.primary}>
               {item.symbol}
-            </StyledText>
+            </Text>
           </Stack>
           <Stack flex={1} gap={2}>
-            <StyledText fontSize={15} fontWeight="700" color={Colors.textPrimary}>{item.code}</StyledText>
-            <StyledText fontSize={12} color={Colors.textMuted}>{item.name}</StyledText>
+            <Text variant="button" color={Colors.textPrimary}>{item.code}</Text>
+            <Text variant="bodySmall" color={Colors.textMuted}>{item.name}</Text>
           </Stack>
           {isSelected && <CheckIcon size={18} color={Colors.primary} strokeWidth={2.5} />}
         </StyledPressable>
@@ -146,10 +163,11 @@ export default function SettingsScreen() {
   const { data: settings, update: updateSettings } = useSettings()
   const { invalidateData } = useRecordsStore()
 
-  const [bioAvailable,  setBioAvailable]  = useState(false)
-  const [bioEnabled,    setBioEnabledState] = useState(false)
-  const [showCurrency,  setShowCurrency]  = useState(false)
-  const [exporting,     setExporting]     = useState(false)
+  const [bioAvailable,   setBioAvailable]   = useState(false)
+  const [bioEnabled,     setBioEnabledState] = useState(false)
+  const [showCurrency,   setShowCurrency]   = useState(false)
+  const [exportingCSV,   setExportingCSV]   = useState(false)
+  const [exportingJSON,  setExportingJSON]  = useState(false)
 
   useEffect(() => {
     Promise.all([isBiometricAvailable(), isBiometricEnabled()])
@@ -176,24 +194,26 @@ export default function SettingsScreen() {
 
   // ─── Export ───────────────────────────────────────────────────────────────
   const handleExportCSV = useCallback(async () => {
-    setExporting(true)
+    setExportingCSV(true)
     try {
       await exportCSV()
+      toastService.success('Transactions exported as CSV')
     } catch (err: any) {
       toastService.error('Export failed', err?.message)
     } finally {
-      setExporting(false)
+      setExportingCSV(false)
     }
   }, [])
 
   const handleExportJSON = useCallback(async () => {
-    setExporting(true)
+    setExportingJSON(true)
     try {
       await exportJSON()
+      toastService.success('Full backup created as JSON')
     } catch (err: any) {
       toastService.error('Backup failed', err?.message)
     } finally {
-      setExporting(false)
+      setExportingJSON(false)
     }
   }, [])
 
@@ -240,13 +260,13 @@ export default function SettingsScreen() {
   const currentCurrency = CURRENCIES.find(c => c.code === settings?.currency)
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg}>
-
-      <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
-        <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>
-          Settings
-        </StyledText>
-      </Stack>
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
+      <Stack flex={1}>
+        <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
+          <Text variant="header" color={Colors.textPrimary} letterSpacing={-0.5}>
+            Settings
+          </Text>
+        </Stack>
 
       <StyledScrollView contentContainerStyle={{ paddingBottom: 48 }}>
 
@@ -260,24 +280,23 @@ export default function SettingsScreen() {
             <Stack
               paddingVertical={18} paddingHorizontal={20}
               borderRadius={20}
-              style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }}
               backgroundColor="#6366F1"
             >
               <Stack horizontal alignItems="center" justifyContent="space-between">
                 <Stack gap={4}>
                   <Stack horizontal alignItems="center" gap={8}>
                     <StyledText fontSize={20}>⚡</StyledText>
-                    <StyledText fontSize={16} fontWeight="800" color="#fff">Upgrade to Premium</StyledText>
+                    <Text variant="subtitle" color="#fff">Upgrade to Premium</Text>
                   </Stack>
-                  <StyledText fontSize={12} color="rgba(255,255,255,0.8)">
+                  <Text variant="bodySmall" color="rgba(255,255,255,0.8)">
                     Unlimited everything · All themes · Export
-                  </StyledText>
+                  </Text>
                 </Stack>
                 <Stack
                   paddingVertical={8} paddingHorizontal={16}
                   borderRadius={20} backgroundColor="rgba(255,255,255,0.2)"
                 >
-                  <StyledText fontSize={13} fontWeight="700" color="#fff">View →</StyledText>
+                  <Text variant="label" color="#fff">View →</Text>
                 </Stack>
               </Stack>
             </Stack>
@@ -292,10 +311,10 @@ export default function SettingsScreen() {
           >
             <StyledText fontSize={22}>⚡</StyledText>
             <Stack flex={1}>
-              <StyledText fontSize={14} fontWeight="700" color="#6366F1">Claro Premium</StyledText>
-              <StyledText fontSize={12} color={Colors.textMuted}>
+              <Text variant="label" color="#6366F1">Claro Premium</Text>
+              <Text variant="bodySmall" color={Colors.textMuted}>
                 {premium.plan === 'lifetime' ? 'Lifetime access' : `${premium.plan} subscription`}
-              </StyledText>
+              </Text>
             </Stack>
             <StyledText fontSize={20}>✓</StyledText>
           </Stack>
@@ -326,10 +345,10 @@ export default function SettingsScreen() {
                     <Stack key={i} width={18} height={18} borderRadius={9} backgroundColor={c} />
                   ))}
                 </Stack>
-                <StyledText fontSize={11} fontWeight="700"
+                <Text variant="overline"
                   color={active ? theme.primary : Colors.textMuted}>
                   {meta.label}
-                </StyledText>
+                </Text>
                 {active && (
                   <Stack
                     width={18} height={18} borderRadius={9}
@@ -443,16 +462,20 @@ export default function SettingsScreen() {
         >
           <SettingsRow
             icon={<CalendarIcon size={20} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />}
-            label={exporting ? 'Exporting…' : 'Export transactions'}
+            label="Export transactions"
+            subtitle={exportingCSV ? 'Exporting…' : undefined}
             value={premium.canExport() ? 'CSV' : '🔒 Premium'}
-            onPress={() => premium.canExport() ? handleExportCSV() : router.push('/premium' as any)}
+            onPress={() => premium.canExport() && !exportingCSV ? handleExportCSV() : premium.canExport() ? null : router.push('/premium' as any)}
+            loading={exportingCSV}
           />
           <StyledDivider borderBottomColor={Colors.border} marginLeft={62} />
           <SettingsRow
             icon={<CopyIcon size={20} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />}
-            label={exporting ? 'Backing up…' : 'Backup all data'}
+            label="Backup all data"
+            subtitle={exportingJSON ? 'Creating backup…' : undefined}
             value={premium.canExport() ? 'JSON' : '🔒 Premium'}
-            onPress={() => premium.canExport() ? handleExportJSON() : router.push('/premium' as any)}
+            onPress={() => premium.canExport() && !exportingJSON ? handleExportJSON() : premium.canExport() ? null : router.push('/premium' as any)}
+            loading={exportingJSON}
           />
         </StyledCard>
 
@@ -500,7 +523,7 @@ export default function SettingsScreen() {
           onSelect={handleCurrencySelect}
         />
       </Popup>
-
     </Stack>
+  </StyledPage>
   )
 }

@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native'
 import {
   Stack, StyledText, StyledPressable, StyledCard,
   StyledDivider, StyledProgressBar,
-  StyledSkeleton, StyledEmptyState, TabBar,
+  StyledSkeleton, StyledEmptyState, TabBar, StyledPage,
 } from 'fluent-styles'
 import { Dimensions } from 'react-native'
 import Svg, { Rect, Text as SvgText, G } from 'react-native-svg'
@@ -272,6 +272,123 @@ function IncomeTab({ data, symbol, loading }: {
   )
 }
 
+// ─── StyledBar: 6-month bar chart ─────────────────────────────────────────────
+interface BarChartData {
+  label: string
+  value: number | null
+  active?: boolean
+}
+
+interface BarChartColors {
+  activeTop: string
+  activeBottom: string
+  inactiveBar: string
+  tooltipBg: string
+  tooltipText: string
+  activeLabelColor: string
+  inactiveLabelColor: string
+}
+
+function StyledBar({
+  data,
+  height = 150,
+  barWidthRatio = 0.6,
+  containerPaddingHorizontal = 0,
+  tooltipLabel = '',
+  colors,
+}: {
+  data: BarChartData[]
+  height?: number
+  barWidthRatio?: number
+  containerPaddingHorizontal?: number
+  tooltipLabel?: string
+  colors: BarChartColors
+}) {
+  const screenW = Dimensions.get('window').width
+  const chartW = screenW - 2 * containerPaddingHorizontal
+  const count = data.length
+  const slotW = chartW / count
+  const barW = slotW * barWidthRatio
+  const barPad = (slotW - barW) / 2
+  const rx = barW / 6
+
+  const nonNullValues = data.filter(d => d.value !== null).map(d => d.value as number)
+  const maxVal = nonNullValues.length > 0 ? Math.max(...nonNullValues, 1) : 1
+
+  const tooltipX = data.findIndex(d => d.active)
+  const tooltipBarX = tooltipX >= 0 ? tooltipX * slotW + barW / 2 + barPad : 0
+
+  return (
+    <Svg width={chartW} height={height + 40}>
+      {/* Tooltip */}
+      {tooltipX >= 0 && tooltipLabel && (
+        <G>
+          {/* Tooltip bg bubble */}
+          <Rect
+            x={Math.max(10, Math.min(tooltipBarX - 45, chartW - 90))}
+            y={10}
+            width={90}
+            height={28}
+            rx={6}
+            fill={colors.tooltipBg}
+          />
+          {/* Tooltip text */}
+          <SvgText
+            x={Math.max(10, Math.min(tooltipBarX - 45, chartW - 90)) + 45}
+            y={32}
+            textAnchor="middle"
+            fontSize={12}
+            fontWeight="700"
+            fill={colors.tooltipText}
+          >
+            {tooltipLabel.length > 10 ? tooltipLabel.substring(0, 10) + '…' : tooltipLabel}
+          </SvgText>
+        </G>
+      )}
+
+      {/* Bars */}
+      {data.map((item, i) => {
+        const val = item.value ?? 0
+        const barH = (val / maxVal) * height
+        const bx = i * slotW + barPad
+        const by = 50 + (height - barH)
+        const cx = bx + barW / 2
+        const isActive = item.active ?? false
+        const barColor = isActive ? colors.activeBottom : colors.inactiveBar
+
+        return (
+          <G key={i}>
+            {/* Bar */}
+            <Rect
+              x={bx}
+              y={by}
+              width={barW}
+              height={barH}
+              rx={rx}
+              ry={rx}
+              fill={barColor}
+              opacity={0.85}
+            />
+            {/* Month label */}
+            <SvgText
+              x={cx}
+              y={50 + height + 20}
+              textAnchor="middle"
+              fontSize={10}
+              fill={isActive ? colors.activeLabelColor : colors.inactiveLabelColor}
+              fontWeight={isActive ? '700' : '400'}
+            >
+              {typeof item.label === 'string' && item.label.length > 0
+                ? item.label.substring(0, 3)
+                : 'N/A'}
+            </SvgText>
+          </G>
+        )
+      })}
+    </Svg>
+  )
+}
+
 // ─── Trends tab ───────────────────────────────────────────────────────────────
 function TrendsTab({ data, symbol, loading }: {
   data: ReturnType<typeof useAnalysis>['data']
@@ -403,24 +520,26 @@ export default function AnalysisScreen() {
   const { data, loading }      = useAnalysis()
 
   return (
-    <Stack flex={1} backgroundColor={Colors.bg}>
-      <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
-        <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Analysis</StyledText>
-      </Stack>
-
-      <MonthNav />
-
-      <TabBar
-        options={TABS} value={tab} onChange={setTab}
-        indicator="line" showBorder
-        colors={{ activeText: Colors.primary, indicator: Colors.primary, text: Colors.textMuted, border: Colors.border }}
-      />
-
+    <StyledPage flex={1} backgroundColor={Colors.bg}>
       <Stack flex={1}>
-        {tab === 'spending' && <SpendingTab data={data} symbol={symbol} loading={loading} />}
-        {tab === 'income'   && <IncomeTab   data={data} symbol={symbol} loading={loading} />}
-        {tab === 'trends'   && <TrendsTab   data={data} symbol={symbol} loading={loading} />}
+        <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
+          <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Analysis</StyledText>
+        </Stack>
+
+        <MonthNav />
+
+        <TabBar
+          options={TABS} value={tab} onChange={setTab}
+          indicator="line" showBorder
+          colors={{ activeText: Colors.primary, indicator: Colors.primary, text: Colors.textMuted, border: Colors.border }}
+        />
+
+        <Stack flex={1}>
+          {tab === 'spending' && <SpendingTab data={data} symbol={symbol} loading={loading} />}
+          {tab === 'income'   && <IncomeTab   data={data} symbol={symbol} loading={loading} />}
+          {tab === 'trends'   && <TrendsTab   data={data} symbol={symbol} loading={loading} />}
+        </Stack>
       </Stack>
-    </Stack>
+    </StyledPage>
   )
 }

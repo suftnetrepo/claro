@@ -1,7 +1,8 @@
 import React from 'react'
-import { Stack, StyledText, StyledPressable } from 'fluent-styles'
+import { Stack, StyledPressable } from 'fluent-styles'
 import { CloseIcon, CheckIcon, DeleteIcon } from '../icons'
 import { Colors } from '../constants'
+import { Text } from './Text'
 
 interface ModalHeaderProps {
   title:       string
@@ -17,7 +18,8 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
   return (
     <Stack
       horizontal alignItems="center" justifyContent="space-between"
-      paddingHorizontal={20} paddingTop={16} paddingBottom={12}
+      paddingHorizontal={20} paddingTop={20} paddingBottom={16}
+      borderBottomWidth={1} borderBottomColor={Colors.border}
     >
       <StyledPressable
         width={36} height={36} borderRadius={18}
@@ -28,9 +30,9 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
         <CloseIcon size={18} color={Colors.textPrimary} />
       </StyledPressable>
 
-      <StyledText fontSize={17} fontWeight="800" color={Colors.textPrimary}>
+      <Text variant="title" color={Colors.textPrimary}>
         {title}
-      </StyledText>
+      </Text>
 
       <Stack horizontal gap={8}>
         {onDelete && (

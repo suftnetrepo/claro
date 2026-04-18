@@ -2,6 +2,7 @@ import React from 'react'
 import { router } from 'expo-router'
 import { Stack, StyledText, StyledPressable } from 'fluent-styles'
 import { useColors } from '../../constants'
+import { Text } from '../../components'
 import { usePremium } from '../../hooks/usePremium'
 
 interface PremiumGateProps {
@@ -43,11 +44,11 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
       >
         <StyledText fontSize={18}>⚡</StyledText>
         <Stack flex={1} gap={2}>
-          <StyledText fontSize={13} fontWeight="700" color={Colors.textPrimary}>
+          <Text variant="label" color={Colors.textPrimary}>
             {feature}
-          </StyledText>
+          </Text>
           {description && (
-            <StyledText fontSize={12} color={Colors.textMuted}>{description}</StyledText>
+            <Text variant="subLabel" color={Colors.textMuted}>{description}</Text>
           )}
         </Stack>
         <StyledPressable
@@ -55,7 +56,7 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
           borderRadius={20} backgroundColor="#6366F1"
           onPress={() => router.push('/premium' as any)}
         >
-          <StyledText fontSize={12} fontWeight="700" color="#fff">Upgrade</StyledText>
+          <Text variant="button" color="#fff">Upgrade</Text>
         </StyledPressable>
       </Stack>
     )
@@ -78,13 +79,13 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
         <StyledText fontSize={24}>🔒</StyledText>
       </Stack>
       <Stack alignItems="center" gap={4}>
-        <StyledText fontSize={16} fontWeight="800" color={Colors.textPrimary}>
+        <Text variant="subtitle" color={Colors.textPrimary}>
           {feature}
-        </StyledText>
+        </Text>
         {description && (
-          <StyledText fontSize={13} color={Colors.textMuted} textAlign="center">
+          <Text variant="body" color={Colors.textMuted} textAlign="center">
             {description}
-          </StyledText>
+          </Text>
         )}
       </Stack>
       <StyledPressable
@@ -99,9 +100,9 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
           elevation: 4,
         }}
       >
-        <StyledText fontSize={14} fontWeight="700" color="#fff">
+        <Text variant="button" color="#fff">
           Unlock with Premium ⚡
-        </StyledText>
+        </Text>
       </StyledPressable>
     </Stack>
   )
@@ -122,7 +123,7 @@ export const PremiumBanner: React.FC<{
 
   return (
     <StyledPressable
-      horizontal alignItems="center" gap={12}
+      flexDirection='row' alignItems="center" gap={12}
       marginHorizontal={16} marginBottom={12}
       paddingVertical={12} paddingHorizontal={16}
       borderRadius={16}
@@ -132,10 +133,10 @@ export const PremiumBanner: React.FC<{
     >
       <StyledText fontSize={20}>⚡</StyledText>
       <Stack flex={1} gap={2}>
-        <StyledText fontSize={13} fontWeight="700" color="#6366F1">{message}</StyledText>
-        {subtext && <StyledText fontSize={11} color={Colors.textMuted}>{subtext}</StyledText>}
+        <Text variant="label" color="#6366F1">{message}</Text>
+        {subtext && <Text variant="caption" color={Colors.textMuted}>{subtext}</Text>}
       </Stack>
-      <StyledText fontSize={13} fontWeight="700" color="#6366F1">→</StyledText>
+      <Text variant="label" color="#6366F1">→</Text>
     </StyledPressable>
   )
 }

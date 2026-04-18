@@ -1,3 +1,4 @@
+export { Text } from './Text'
 export { ColorPicker } from './ColorPicker'
 export { IconPicker }  from './IconPicker'
 export { ModalHeader } from './ModalHeader'

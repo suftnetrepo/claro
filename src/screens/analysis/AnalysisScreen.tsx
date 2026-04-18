@@ -259,13 +259,13 @@ function TrendCard({
 
   return (
     <StyledCard
-      padding={16}
+      padding={12}
       borderRadius={18}
       backgroundColor={Colors.bgCard}
       borderWidth={1}
       borderColor={Colors.border}
     >
-      <Stack gap={4} marginBottom={14}>
+      <Stack gap={2} marginBottom={10}>
         <StyledText
           fontSize={12}
           fontWeight="700"
@@ -286,9 +286,9 @@ function TrendCard({
       <BarChart
         data={bars}
         width={chartWidth}
-        height={180}
+        height={120}
         barWidth={28}
-        spacing={18}
+        spacing={16}
         roundedTop
         roundedBottom
         barBorderRadius={10}
@@ -383,28 +383,33 @@ function TrendsTab({ data, symbol, loading }: {
   const spendingMax = Math.max(...spendingBars.map(b => b.value), 1)
   const incomeMax = Math.max(...incomeBars.map(b => b.value), 1)
 
+  // Detect low-data scenarios (sparse data)
+  const nonZeroSpending = spendingBars.filter(b => b.value > 0).length
+  const nonZeroIncome = incomeBars.filter(b => b.value > 0).length
+  const isSparseData = nonZeroSpending <= 2 || nonZeroIncome <= 2
+
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 20 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: isSparseData ? 14 : 16 }}
       showsVerticalScrollIndicator={false}
     >
-      <Stack horizontal gap={12}>
+      <Stack horizontal gap={8}>
         <StyledCard
           flex={1}
-          padding={16}
+          padding={12}
           borderRadius={16}
           backgroundColor={Colors.bgCard}
           borderWidth={1}
           borderColor={Colors.border}
         >
-          <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>
+          <StyledText fontSize={9} fontWeight="700" color={Colors.textMuted} letterSpacing={0.5}>
             AVG MONTHLY
           </StyledText>
           <StyledText
-            fontSize={20}
+            fontSize={18}
             fontWeight="800"
             color={Colors.expense}
-            marginTop={6}
+            marginTop={4}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
@@ -414,44 +419,44 @@ function TrendsTab({ data, symbol, loading }: {
 
         <StyledCard
           flex={1}
-          padding={16}
+          padding={12}
           borderRadius={16}
           backgroundColor={Colors.bgCard}
           borderWidth={1}
           borderColor={Colors.border}
         >
-          <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>
+          <StyledText fontSize={9} fontWeight="700" color={Colors.textMuted} letterSpacing={0.5}>
             HIGHEST
           </StyledText>
-          <StyledText fontSize={18} fontWeight="800" color={Colors.expense} marginTop={6}>
+          <StyledText fontSize={16} fontWeight="800" color={Colors.expense} marginTop={4} numberOfLines={1} ellipsizeMode="tail">
             {maxExp?.month ?? '—'}
           </StyledText>
-          <StyledText fontSize={12} color={Colors.textMuted} marginTop={2}>
+          <StyledText fontSize={11} color={Colors.textMuted} marginTop={2} numberOfLines={1} adjustsFontSizeToFit>
             {formatCurrency(Number(maxExp?.expense) || 0, symbol)}
           </StyledText>
         </StyledCard>
 
         <StyledCard
           flex={1}
-          padding={16}
+          padding={12}
           borderRadius={16}
           backgroundColor={Colors.bgCard}
           borderWidth={1}
           borderColor={Colors.border}
         >
-          <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={1}>
+          <StyledText fontSize={9} fontWeight="700" color={Colors.textMuted} letterSpacing={0.5}>
             LOWEST
           </StyledText>
-          <StyledText fontSize={18} fontWeight="800" color={Colors.income} marginTop={6}>
+          <StyledText fontSize={16} fontWeight="800" color={Colors.income} marginTop={4} numberOfLines={1} ellipsizeMode="tail">
             {minExp?.month ?? '—'}
           </StyledText>
-          <StyledText fontSize={12} color={Colors.textMuted} marginTop={2}>
+          <StyledText fontSize={11} color={Colors.textMuted} marginTop={2} numberOfLines={1} adjustsFontSizeToFit>
             {formatCurrency(Number(minExp?.expense) || 0, symbol)}
           </StyledText>
         </StyledCard>
       </Stack>
 
-      <Stack gap={8}>
+      <Stack gap={4}>
         <StyledText
           fontSize={13}
           fontWeight="700"
@@ -472,7 +477,7 @@ function TrendsTab({ data, symbol, loading }: {
         />
       </Stack>
 
-      <Stack gap={8}>
+      <Stack gap={4}>
         <StyledText
           fontSize={13}
           fontWeight="700"

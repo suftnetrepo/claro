@@ -768,18 +768,19 @@ export default function AnalysisScreen() {
 
         <TabBar
           options={TABS} value={tab} onChange={setTab}
-          indicator="line" showBorder
+          indicator="line" showBorder indicatorHeight={4}
           colors={{
             background: Colors.bgCard,
-            activeText: Colors.accent,
+            activeText: Colors.primary,
             text: Colors.textMuted,
-            indicator: Colors.accent,
+            indicator: Colors.primary,
             border: `rgba(255,255,255,0.08)`,
-            badge: Colors.accent,
-            activeChipBg: Colors.accent,
+            badge: Colors.primary,
+            activeChipBg: Colors.primary,
             activeChipText: Colors.textOnDark,
             disabled: Colors.textMuted,
           }}
+          labelBulge={false}
         />
 
         <Stack flex={1}>

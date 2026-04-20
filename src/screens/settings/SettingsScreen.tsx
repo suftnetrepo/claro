@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { router } from 'expo-router'
-import { View, ScrollView, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native'
+import { FlatList, ActivityIndicator } from 'react-native'
 import {
-  Stack, StyledText, StyledPressable, Switch, Popup, StyledPage, StyledDivider,
+  Stack, StyledText, StyledPressable, StyledScrollView, StyledCard,
+  StyledDivider, Switch, Popup, StyledPage,
 } from 'fluent-styles'
-import { Text } from '../../components'
 import { toastService, dialogueService } from 'fluent-styles'
 import {
   ChevronRightIcon, CheckIcon, LockIcon, FingerprintIcon,
   AccountsTabIcon, CategoriesTabIcon, SettingsTabIcon,
   DeleteIcon, TrendUpIcon, CalendarIcon, CopyIcon, BellIcon,
 } from '../../icons'
-import { Colors, useColors, CURRENCIES } from '../../constants'
+import { useColors, CURRENCIES } from '../../constants'
 import { usePremium } from '../../hooks/usePremium'
 import { THEMES, THEME_META, type ThemeKey } from '../../constants/themes'
 import { useThemeStore, usePremiumStore } from '../../stores'
@@ -19,29 +19,27 @@ import { exportCSV, exportJSON } from '../../services/exportService'
 import { clearEntitlement } from '../../services/premiumService'
 import { useSettings } from '../../hooks'
 import { useRecordsStore } from '../../stores'
-import {
-  isBiometricAvailable, isBiometricEnabled, setBiometricEnabled,
-  hasPin, deletePin, clearSetup,
-} from '../../utils/security'
+import { isBiometricAvailable, isBiometricEnabled, setBiometricEnabled, deletePin, clearSetup } from '../../utils/security'
+import { Text } from '../../components'
 
 // ─── Section header ───────────────────────────────────────────────────────────
 function SectionHeader({ label }: { label: string }) {
   const Colors = useColors()
   return (
-    <View style={{ paddingHorizontal: 20, paddingTop: 28, paddingBottom: 8 }}>
-      <StyledText fontSize={11} fontWeight="700" color={Colors.textMuted} letterSpacing={1.2}>
+    <Stack paddingHorizontal={20} paddingTop={28} paddingBottom={8}>
+      <Text variant="overline" color={Colors.textMuted} letterSpacing={1.2}>
         {label.toUpperCase()}
-      </StyledText>
-    </View>
+      </Text>
+    </Stack>
   )
 }
 
-// ─── Icon pill — colored background behind row icon ───────────────────────────
-function IconPill({ icon, color, bg }: { icon: React.ReactNode; color?: string; bg: string }) {
+// ─── Icon pill ────────────────────────────────────────────────────────────────
+function IconPill({ icon, bg }: { icon: React.ReactNode; bg: string }) {
   return (
-    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+    <Stack width={36} height={36} borderRadius={10} backgroundColor={bg} alignItems="center" justifyContent="center">
       {icon}
-    </View>
+    </Stack>
   )
 }
 
@@ -52,16 +50,19 @@ function SettingsRow({ icon, label, value, subtitle, onPress, danger = false, lo
 }) {
   const Colors = useColors()
   return (
-    <TouchableOpacity onPress={onPress} disabled={loading} activeOpacity={0.7}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, opacity: loading ? 0.6 : 1, backgroundColor: Colors.bgCard }}>
+    <StyledPressable flexDirection="row" alignItems="center" gap={14}
+      paddingHorizontal={16} paddingVertical={13} backgroundColor={Colors.bgCard}
+      onPress={onPress} disabled={loading} opacity={loading ? 0.6 : 1}>
       {icon}
-      <View style={{ flex: 1, gap: subtitle ? 2 : 0 }}>
-        <StyledText fontSize={15} fontWeight="600" color={danger ? Colors.expense : Colors.textPrimary}>{label}</StyledText>
-        {subtitle && <StyledText fontSize={12} color={Colors.textMuted}>{subtitle}</StyledText>}
-      </View>
-      {value && !loading && <StyledText fontSize={13} color={Colors.textMuted} style={{ marginRight: 4 }}>{value}</StyledText>}
-      {loading ? <ActivityIndicator size="small" color={Colors.primary} /> : <ChevronRightIcon size={16} color={Colors.textMuted} strokeWidth={2} />}
-    </TouchableOpacity>
+      <Stack flex={1} gap={subtitle ? 2 : 0}>
+        <Text fontSize={15} fontWeight="600" color={danger ? Colors.expense : Colors.textPrimary}>{label}</Text>
+        {subtitle && <Text variant="bodySmall" color={Colors.textMuted}>{subtitle}</Text>}
+      </Stack>
+      {value && !loading && <Text variant="subLabel" color={Colors.textMuted} marginRight={4}>{value}</Text>}
+      {loading
+        ? <ActivityIndicator size="small" color={Colors.primary} />
+        : <ChevronRightIcon size={16} color={Colors.textMuted} strokeWidth={2} />}
+    </StyledPressable>
   )
 }
 
@@ -72,14 +73,15 @@ function SwitchRow({ icon, label, subtitle, value, onChange, disabled }: {
 }) {
   const Colors = useColors()
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: Colors.bgCard }}>
+    <Stack flexDirection="row" alignItems="center" gap={14}
+      paddingHorizontal={16} paddingVertical={13} backgroundColor={Colors.bgCard}>
       {icon}
-      <View style={{ flex: 1, gap: 2 }}>
-        <StyledText fontSize={15} fontWeight="600" color={Colors.textPrimary}>{label}</StyledText>
-        {subtitle && <StyledText fontSize={12} color={Colors.textMuted}>{subtitle}</StyledText>}
-      </View>
+      <Stack flex={1} gap={2}>
+        <Text fontSize={15} fontWeight="600" color={Colors.textPrimary}>{label}</Text>
+        {subtitle && <Text variant="bodySmall" color={Colors.textMuted}>{subtitle}</Text>}
+      </Stack>
       <Switch value={value} onChange={onChange} disabled={disabled} size="sm" activeColor={Colors.primary} />
-    </View>
+    </Stack>
   )
 }
 
@@ -87,21 +89,17 @@ function SwitchRow({ icon, label, subtitle, value, onChange, disabled }: {
 function SettingsGroup({ children }: { children: React.ReactNode }) {
   const Colors = useColors()
   return (
-    <View style={{
-      marginHorizontal: 16, borderRadius: 18, overflow: 'hidden',
-      backgroundColor: Colors.bgCard,
-      shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 }, elevation: 2,
-    }}>
+    <StyledCard marginHorizontal={16} borderRadius={18} overflow="hidden"
+      backgroundColor={Colors.bgCard} shadow="light">
       {children}
-    </View>
+    </StyledCard>
   )
 }
 
-// ─── Row divider ─────────────────────────────────────────────────────────────
+// ─── Row divider ──────────────────────────────────────────────────────────────
 function RowDivider() {
   const Colors = useColors()
-  return <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 66 }} />
+  return <Stack height={1} backgroundColor={Colors.border} marginLeft={66} opacity={0.6} />
 }
 
 // ─── Currency picker ──────────────────────────────────────────────────────────
@@ -115,24 +113,22 @@ function CurrencyPicker({ current, onSelect }: { current: string; onSelect: (cod
       renderItem={({ item }) => {
         const isSelected = item.code === current
         return (
-          <StyledPressable
-            flexDirection="row" alignItems="center" gap={14}
+          <StyledPressable flexDirection="row" alignItems="center" gap={14}
             paddingHorizontal={20} paddingVertical={14}
             backgroundColor={isSelected ? Colors.accent : Colors.bgCard}
-            onPress={() => onSelect(item.code, item.symbol)}
-          >
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' }}>
-              <StyledText fontSize={16} fontWeight="700" color={Colors.primary}>{item.symbol}</StyledText>
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <StyledText fontSize={15} fontWeight="600" color={Colors.textPrimary}>{item.code}</StyledText>
-              <StyledText fontSize={12} color={Colors.textMuted}>{item.name}</StyledText>
-            </View>
+            onPress={() => onSelect(item.code, item.symbol)}>
+            <Stack width={40} height={40} borderRadius={20} backgroundColor={Colors.accent} alignItems="center" justifyContent="center">
+              <Text fontSize={16} fontWeight="700" color={Colors.primary}>{item.symbol}</Text>
+            </Stack>
+            <Stack flex={1} gap={2}>
+              <Text fontSize={15} fontWeight="600" color={Colors.textPrimary}>{item.code}</Text>
+              <Text variant="bodySmall" color={Colors.textMuted}>{item.name}</Text>
+            </Stack>
             {isSelected && <CheckIcon size={18} color={Colors.primary} strokeWidth={2.5} />}
           </StyledPressable>
         )
       }}
-      ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 74 }} />}
+      ItemSeparatorComponent={() => <StyledDivider borderBottomColor={Colors.border} marginLeft={74} opacity={0.6} />}
     />
   )
 }
@@ -164,8 +160,7 @@ export default function SettingsScreen() {
   }, [updateSettings, invalidateData])
 
   const handleBioToggle = useCallback(async (enabled: boolean) => {
-    await setBiometricEnabled(enabled)
-    setBioEnabled(enabled)
+    await setBiometricEnabled(enabled); setBioEnabled(enabled)
     toastService.success(enabled ? 'Biometric unlock enabled' : 'Biometric unlock disabled')
   }, [])
 
@@ -188,8 +183,7 @@ export default function SettingsScreen() {
   const handleResetPremium = useCallback(async () => {
     const ok = await dialogueService.confirm({ title: 'Reset premium?', message: 'Remove premium entitlement for testing.', icon: '🧪', confirmLabel: 'Reset', destructive: true })
     if (!ok) return
-    await clearEntitlement()
-    usePremiumStore.getState().setEntitlement(false, null)
+    await clearEntitlement(); usePremiumStore.getState().setEntitlement(false, null)
     toastService.info('Premium reset', 'App is now in free mode')
   }, [])
 
@@ -205,203 +199,161 @@ export default function SettingsScreen() {
 
   return (
     <StyledPage flex={1} backgroundColor={Colors.bg}>
-      <View style={{ flex: 1 }}>
+      <Stack flex={1}>
+        <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
+          <Text variant="display" fontSize={22} color={Colors.textPrimary} letterSpacing={-0.5}>Settings</Text>
+        </Stack>
 
-        {/* Header */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
-          <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Settings</StyledText>
-        </View>
+        <StyledScrollView contentContainerStyle={{ paddingBottom: 48 }}>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
-
-          {/* ── Premium banner ────────────────────────────────────────── */}
-          <View style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 4 }}>
+          {/* Premium banner */}
+          <Stack marginHorizontal={16} marginTop={12} marginBottom={4}>
             {!premium.isPremium ? (
-              <TouchableOpacity onPress={() => router.push('/premium' as any)} activeOpacity={0.85}>
-                <View style={{
-                  borderRadius: 20, padding: 20,
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary, shadowOpacity: 0.35, shadowRadius: 16,
-                  shadowOffset: { width: 0, height: 6 }, elevation: 8,
-                }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ gap: 4 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <StyledText fontSize={20}>⚡</StyledText>
-                        <StyledText fontSize={17} fontWeight="800" color="#fff">Upgrade to Premium</StyledText>
-                      </View>
-                      <StyledText fontSize={12} color="rgba(255,255,255,0.75)">
-                        Unlimited everything · All themes · Export
-                      </StyledText>
-                    </View>
-                    <View style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                      <StyledText fontSize={13} fontWeight="700" color="#fff">View →</StyledText>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
+              <StyledPressable borderRadius={20} overflow="hidden" onPress={() => router.push('/premium' as any)}>
+                <Stack paddingVertical={18} paddingHorizontal={20} borderRadius={20} backgroundColor={Colors.primary}
+                  style={{ shadowColor: Colors.primary, shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
+                  <Stack horizontal alignItems="center" justifyContent="space-between">
+                    <Stack gap={4}>
+                      <Stack horizontal alignItems="center" gap={8}>
+                        <Text fontSize={20}>⚡</Text>
+                        <Text fontSize={17} fontWeight="800" color="#fff">Upgrade to Premium</Text>
+                      </Stack>
+                      <Text variant="bodySmall" color="rgba(255,255,255,0.75)">Unlimited everything · All themes · Export</Text>
+                    </Stack>
+                    <Stack paddingVertical={8} paddingHorizontal={16} borderRadius={20} backgroundColor="rgba(255,255,255,0.2)">
+                      <Text variant="label" fontSize={13} color="#fff">View →</Text>
+                    </Stack>
+                  </Stack>
+                </Stack>
+              </StyledPressable>
             ) : (
-              <View style={{ borderRadius: 16, padding: 16, backgroundColor: Colors.accent, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <StyledText fontSize={22}>⚡</StyledText>
-                <View style={{ flex: 1 }}>
-                  <StyledText fontSize={14} fontWeight="700" color={Colors.primary}>Claro Premium</StyledText>
-                  <StyledText fontSize={12} color={Colors.textMuted}>{premium.plan === 'lifetime' ? 'Lifetime access' : `${premium.plan} subscription`}</StyledText>
-                </View>
-                <StyledText fontSize={18} color={Colors.primary}>✓</StyledText>
-              </View>
+              <Stack borderRadius={16} padding={16} backgroundColor={Colors.accent} flexDirection="row" alignItems="center" gap={12}>
+                <Text fontSize={22}>⚡</Text>
+                <Stack flex={1}>
+                  <Text variant="label" fontSize={14} color={Colors.primary}>Claro Premium</Text>
+                  <Text variant="subLabel" color={Colors.textMuted}>{premium.plan === 'lifetime' ? 'Lifetime access' : `${premium.plan} subscription`}</Text>
+                </Stack>
+                <Text fontSize={18} color={Colors.primary}>✓</Text>
+              </Stack>
             )}
-          </View>
+          </Stack>
 
-          {/* ── Appearance ────────────────────────────────────────────── */}
+          {/* Appearance */}
           <SectionHeader label="Appearance" />
-          <View style={{ marginHorizontal: 16, flexDirection: 'row', gap: 10 }}>
-            {(Object.keys(THEME_META) as ThemeKey[]).map((key) => {
+          <Stack marginHorizontal={16} flexDirection="row" gap={10}>
+            {(Object.keys(THEME_META) as ThemeKey[]).map(key => {
               const meta   = THEME_META[key]
               const theme  = THEMES[key]
               const active = themeKey === key
               return (
-                <TouchableOpacity key={key} onPress={() => setTheme(key)} activeOpacity={0.75}
-                  style={{ flex: 1, alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 8, borderRadius: 16,
-                    borderWidth: 2, borderColor: active ? theme.primary : Colors.border,
-                    backgroundColor: active ? theme.accent : Colors.bgCard }}>
-                  {/* Swatches */}
-                  <View style={{ flexDirection: 'row', gap: 3 }}>
-                    {meta.preview.map((c, i) => (
-                      <View key={i} style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: c }} />
-                    ))}
-                  </View>
-                  <StyledText fontSize={10} fontWeight="700" letterSpacing={0.8}
-                    color={active ? theme.primary : Colors.textMuted}>
+                <StyledPressable key={key} onPress={() => setTheme(key)}
+                  flex={1} alignItems="center" gap={8} paddingVertical={14} paddingHorizontal={8} borderRadius={16}
+                  borderWidth={2} borderColor={active ? theme.primary : Colors.border}
+                  backgroundColor={active ? theme.accent : Colors.bgCard}>
+                  <Stack horizontal gap={3}>
+                    {meta.preview.map((c, i) => <Stack key={i} width={14} height={14} borderRadius={7} backgroundColor={c} />)}
+                  </Stack>
+                  <StyledText fontSize={10} fontWeight="700" letterSpacing={0.8} color={active ? theme.primary : Colors.textMuted}>
                     {meta.label.toUpperCase()}
                   </StyledText>
                   {active && (
-                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' }}>
+                    <Stack width={16} height={16} borderRadius={8} backgroundColor={theme.primary} alignItems="center" justifyContent="center">
                       <CheckIcon size={9} color={Colors.white} strokeWidth={3} />
-                    </View>
+                    </Stack>
                   )}
-                </TouchableOpacity>
+                </StyledPressable>
               )
             })}
-          </View>
+          </Stack>
 
-          {/* ── General ───────────────────────────────────────────────── */}
+          {/* General */}
           <SectionHeader label="General" />
           <SettingsGroup>
             <SettingsRow
               icon={<IconPill bg={Colors.accent} icon={<TrendUpIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
-              label="Currency"
-              value={currentCurrency ? `${currentCurrency.symbol} ${currentCurrency.code}` : '—'}
-              onPress={() => setShowCurrency(true)}
-            />
+              label="Currency" value={currentCurrency ? `${currentCurrency.symbol} ${currentCurrency.code}` : '—'}
+              onPress={() => setShowCurrency(true)} />
           </SettingsGroup>
 
-          {/* ── Manage ────────────────────────────────────────────────── */}
+          {/* Manage */}
           <SectionHeader label="Manage" />
           <SettingsGroup>
-            <SettingsRow
-              icon={<IconPill bg={Colors.accent} icon={<AccountsTabIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
-              label="Accounts"
-              onPress={() => router.push('/(tabs)/accounts' as any)}
-            />
+            <SettingsRow icon={<IconPill bg={Colors.accent} icon={<AccountsTabIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Accounts" onPress={() => router.push('/(tabs)/accounts' as any)} />
             <RowDivider />
-            <SettingsRow
-              icon={<IconPill bg={Colors.accent} icon={<CategoriesTabIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
-              label="Categories"
-              onPress={() => router.push('/(tabs)/categories' as any)}
-            />
+            <SettingsRow icon={<IconPill bg={Colors.accent} icon={<CategoriesTabIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Categories" onPress={() => router.push('/(tabs)/categories' as any)} />
           </SettingsGroup>
 
-          {/* ── Security ──────────────────────────────────────────────── */}
+          {/* Security */}
           <SectionHeader label="Security" />
           <SettingsGroup>
-            <SettingsRow
-              icon={<IconPill bg={Colors.accent} icon={<LockIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
-              label="Change PIN"
-              onPress={handleChangePIN}
-            />
+            <SettingsRow icon={<IconPill bg={Colors.accent} icon={<LockIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Change PIN" onPress={handleChangePIN} />
             {bioAvailable && (
               <>
                 <RowDivider />
-                <SwitchRow
-                  icon={<IconPill bg={Colors.accent} icon={<FingerprintIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
-                  label="Face ID / Touch ID"
-                  subtitle="Unlock with biometrics"
-                  value={bioEnabled}
-                  onChange={handleBioToggle}
-                />
+                <SwitchRow icon={<IconPill bg={Colors.accent} icon={<FingerprintIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+                  label="Face ID / Touch ID" subtitle="Unlock with biometrics" value={bioEnabled} onChange={handleBioToggle} />
               </>
             )}
           </SettingsGroup>
 
-          {/* ── Data ──────────────────────────────────────────────────── */}
+          {/* Data */}
           <SectionHeader label="Data" />
           <SettingsGroup>
             <SettingsRow
               icon={<IconPill bg={Colors.accent} icon={<CalendarIcon size={18} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />} />}
-              label="Export transactions"
-              subtitle={exportingCSV ? 'Exporting…' : undefined}
+              label="Export transactions" subtitle={exportingCSV ? 'Exporting…' : undefined}
               value={premium.canExport() ? 'CSV' : '🔒 Premium'}
               onPress={() => premium.canExport() && !exportingCSV ? handleExportCSV() : !premium.canExport() ? router.push('/premium' as any) : undefined}
-              loading={exportingCSV}
-            />
+              loading={exportingCSV} />
             <RowDivider />
             <SettingsRow
               icon={<IconPill bg={Colors.accent} icon={<CopyIcon size={18} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />} />}
-              label="Backup all data"
-              subtitle={exportingJSON ? 'Creating backup…' : undefined}
+              label="Backup all data" subtitle={exportingJSON ? 'Creating backup…' : undefined}
               value={premium.canExport() ? 'JSON' : '🔒 Premium'}
               onPress={() => premium.canExport() && !exportingJSON ? handleExportJSON() : !premium.canExport() ? router.push('/premium' as any) : undefined}
-              loading={exportingJSON}
-            />
+              loading={exportingJSON} />
           </SettingsGroup>
 
-          {/* ── About ─────────────────────────────────────────────────── */}
+          {/* About */}
           <SectionHeader label="About" />
           <SettingsGroup>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: Colors.bgCard }}>
+            <Stack flexDirection="row" alignItems="center" gap={14} paddingHorizontal={16} paddingVertical={13} backgroundColor={Colors.bgCard}>
               <IconPill bg={Colors.bgMuted} icon={<SettingsTabIcon size={18} color={Colors.textMuted} strokeWidth={1.8} />} />
-              <StyledText flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Version</StyledText>
-              <StyledText fontSize={13} color={Colors.textMuted}>1.0.0</StyledText>
-            </View>
+              <Text flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Version</Text>
+              <Text variant="subLabel" color={Colors.textMuted}>1.0.0</Text>
+            </Stack>
             <RowDivider />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: Colors.bgCard }}>
+            <Stack flexDirection="row" alignItems="center" gap={14} paddingHorizontal={16} paddingVertical={13} backgroundColor={Colors.bgCard}>
               <IconPill bg={Colors.bgMuted} icon={<BellIcon size={18} color={Colors.textMuted} strokeWidth={1.8} />} />
-              <StyledText flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Built with</StyledText>
-              <StyledText fontSize={13} color={Colors.textMuted}>fluent-styles</StyledText>
-            </View>
+              <Text flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Built with</Text>
+              <Text variant="subLabel" color={Colors.textMuted}>fluent-styles</Text>
+            </Stack>
           </SettingsGroup>
 
-          {/* ── Danger zone ───────────────────────────────────────────── */}
+          {/* Danger zone */}
           <SectionHeader label="Danger Zone" />
           <SettingsGroup>
-            <SettingsRow
-              icon={<IconPill bg={Colors.expenseLight} icon={<DeleteIcon size={18} color={Colors.expense} strokeWidth={2} />} />}
-              label="Reset app"
-              onPress={handleResetApp}
-              danger
-            />
+            <SettingsRow icon={<IconPill bg={Colors.expenseLight} icon={<DeleteIcon size={18} color={Colors.expense} strokeWidth={2} />} />}
+              label="Reset app" onPress={handleResetApp} danger />
             {__DEV__ && (
               <>
                 <RowDivider />
-                <SettingsRow
-                  icon={<IconPill bg={Colors.bgMuted} icon={<StyledText fontSize={16}>🧪</StyledText>} />}
-                  label="Reset premium (dev)"
-                  onPress={handleResetPremium}
-                  danger
-                />
+                <SettingsRow icon={<IconPill bg={Colors.bgMuted} icon={<Text fontSize={16}>🧪</Text>} />}
+                  label="Reset premium (dev)" onPress={handleResetPremium} danger />
               </>
             )}
           </SettingsGroup>
 
-        </ScrollView>
+        </StyledScrollView>
 
-        {/* Currency picker popup */}
         <Popup visible={showCurrency} onClose={() => setShowCurrency(false)}
           title="Select Currency" showClose position="bottom" round roundRadius={20}>
           <CurrencyPicker current={settings?.currency ?? 'USD'} onSelect={handleCurrencySelect} />
         </Popup>
-
-      </View>
+      </Stack>
     </StyledPage>
   )
 }

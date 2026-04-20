@@ -25,6 +25,37 @@ export const formatAmount = (
   return `${sign}${symbol}${Math.abs(amount).toFixed(2)}`
 }
 
+// ─── Percentage Change ────────────────────────────────────────────────────────
+
+/**
+ * Calculate percentage change between two values
+ * @returns Object with percentage, isIncrease, isPositive, display string
+ */
+export const calculatePercentageChange = (current: number, previous: number): {
+  percentage: number
+  isPositive: boolean
+  isIncrease: boolean
+  displayText: string
+} => {
+  if (previous === 0) {
+    // If previous is zero and current is not, show 100% increase
+    return { 
+      percentage: current > 0 ? 100 : 0, 
+      isPositive: current >= 0, 
+      isIncrease: current > 0,
+      displayText: current > 0 ? '↑ ∞%' : '↓ 0%' 
+    }
+  }
+  const change = current - previous
+  const percentage = Math.abs((change / previous) * 100)
+  return {
+    percentage: parseFloat(percentage.toFixed(1)),
+    isPositive: change >= 0,
+    isIncrease: change > 0,
+    displayText: `${change >= 0 ? '↑' : '↓'} ${percentage.toFixed(1)}%`,
+  }
+}
+
 // ─── Dates ────────────────────────────────────────────────────────────────────
 
 export const formatMonthYear = (date: Date): string =>

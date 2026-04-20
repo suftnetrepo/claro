@@ -1,24 +1,63 @@
 import React, { useCallback, useState } from 'react'
-import { SectionList, RefreshControl } from 'react-native'
+import { SectionList, RefreshControl, useWindowDimensions } from 'react-native'
 import { router } from 'expo-router'
 import {
-  Stack, StyledText, StyledPressable, StyledEmptyState, StyledSkeleton,
-  StyledPage, StyledHeader, StyledCard, StyledChip, StyledTextInput,
-  StyledScrollView, StyledDivider,
+  Stack, StyledPressable, StyledEmptyState, StyledSkeleton,
+  StyledPage, StyledHeader, StyledCard, StyledChip,StyledTextInput
 } from 'fluent-styles'
 import { dialogueService, toastService } from 'fluent-styles'
-import { format } from 'date-fns'
 import Svg, { Path, Defs, LinearGradient as SvgGrad, Stop } from 'react-native-svg'
 import { ChevronLeftIcon } from '../../icons'
 import { IconCircle } from '../../icons/map'
 import { useColors } from '../../constants'
 import { useTransactions, useSettings } from '../../hooks'
 import { useRecordsStore } from '../../stores'
-import { formatCurrency, formatShortDate, formatTime } from '../../utils'
-import { SwipeableRow } from '../../components'
+import { formatCurrency, formatShortDate, formatTime, calculatePercentageChange, prevMonth } from '../../utils'
+import { SwipeableRow, Text } from '../../components'
 import type { TransactionWithRefs } from '../../hooks'
 
 type FilterType = 'all' | 'expense' | 'income' | 'transfer'
+
+// ─── Trend Indicator ──────────────────────────────────────────────────────────
+/**
+ * Shows percentage change with arrow and context.
+ * Color indicates semantic meaning (good/bad) based on metric type.
+ */
+function TrendIndicator({
+  percentage,
+  isIncrease,
+  trend,
+  metricType,
+}: {
+  percentage: number
+  isIncrease: boolean
+  trend: string // "↑ X.X%" or "↓ X.X%"
+  metricType: 'income' | 'expense' | 'net'
+}) {
+  const Colors = useColors()
+  
+  // Determine color based on metric type and direction
+  const getTrendColor = () => {
+    if (metricType === 'income') {
+      // For income: up = good (green), down = bad (red)
+      return isIncrease ? Colors.income : Colors.expense
+    } else if (metricType === 'expense') {
+      // For expense: up = bad (red), down = good (green)
+      return isIncrease ? Colors.expense : Colors.income
+    } else {
+      // For net: up = good (green), down = bad (red)
+      return isIncrease ? Colors.income : Colors.expense
+    }
+  }
+  
+  const trendColor = getTrendColor()
+  
+  return (
+    <Text fontSize={11} fontWeight="600" color={trendColor} numberOfLines={1}>
+      {trend} vs last month
+    </Text>
+  )
+}
 
 // ─── Mini sparkline ──────────────────────────────────────────────────────────
 function MiniSpark({ color, up = true, w = 64, h = 28 }: { color: string; up?: boolean; w?: number; h?: number }) {
@@ -55,7 +94,6 @@ function TxRow({ tx, symbol, onDelete, isFirst, isLast }: {
 
   return (
     <StyledCard
-      shadow="light"
       borderTopLeftRadius={isFirst ? 18 : 0}
       borderTopRightRadius={isFirst ? 18 : 0}
       borderBottomLeftRadius={isLast ? 18 : 0}
@@ -74,17 +112,17 @@ function TxRow({ tx, symbol, onDelete, isFirst, isLast }: {
         >
           <IconCircle iconKey={tx.categoryIcon ?? tx.type} bg={iconBg} size={44} />
           <Stack flex={1} gap={3} marginLeft={14}>
-            <StyledText fontSize={15} fontWeight="700" color={Colors.textPrimary} numberOfLines={1}>
+            <Text fontSize={15} fontWeight="700" color={Colors.textPrimary} numberOfLines={1}>
               {tx.categoryName ?? (isTransfer ? 'Transfer' : 'Uncategorized')}
-            </StyledText>
+            </Text>
             <Stack horizontal alignItems="center" gap={4}>
-              {tx.accountName && <StyledText fontSize={12} color={Colors.textMuted}>{tx.accountName}</StyledText>}
-              <StyledText fontSize={12} color={Colors.textMuted}>· {formatTime(new Date(tx.date))}</StyledText>
+              {tx.accountName && <Text fontSize={12} color={Colors.textMuted}>{tx.accountName}</Text>}
+              <Text fontSize={12} color={Colors.textMuted}>· {formatTime(new Date(tx.date))}</Text>
             </Stack>
           </Stack>
-          <StyledText fontSize={15} fontWeight="700" color={amtColor}>
+          <Text fontSize={15} fontWeight="700" color={amtColor}>
             {prefix}{formatCurrency(tx.amount, symbol)}
-          </StyledText>
+          </Text>
         </StyledPressable>
       </SwipeableRow>
     </StyledCard>
@@ -138,6 +176,21 @@ export default function AllTransactionsScreen() {
   }))
 
   const netBalance = totalIncome - totalExpense
+  
+  // Previous month data for trend calculation
+  const prevMonthDate = prevMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+  const { data: prevMonthTransactions } = useTransactions(prevMonthDate)
+  const prevMonthIncome = prevMonthTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+  const prevMonthExpense = prevMonthTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+  const prevMonthNet = prevMonthIncome - prevMonthExpense
+  
+  // Calculate percentage changes
+  const incomeChange = calculatePercentageChange(totalIncome, prevMonthIncome) as NonNullable<ReturnType<typeof calculatePercentageChange>>
+  const expenseChange = calculatePercentageChange(totalExpense, prevMonthExpense) as NonNullable<ReturnType<typeof calculatePercentageChange>>
+  const netChange = calculatePercentageChange(netBalance, prevMonthNet) as NonNullable<ReturnType<typeof calculatePercentageChange>>
+  
+  // Determine if we have valid previous data
+  const hasPreviousData = prevMonthTransactions.length > 0
 
   const FILTERS: { value: FilterType; label: string; color: string }[] = [
     { value: 'all',      label: 'All',      color: Colors.primary  },
@@ -145,6 +198,13 @@ export default function AllTransactionsScreen() {
     { value: 'income',   label: 'Income',   color: Colors.income   },
     { value: 'transfer', label: 'Transfer', color: Colors.transfer },
   ]
+
+  function RowDivider() {
+    const Colors = useColors()
+    const width = useWindowDimensions().width
+    return <Stack horizontal width={width - 66-16} height={1} flex={1} backgroundColor={Colors.border} marginLeft={66} opacity={0.6} />
+  }
+  
 
   return (
     <StyledPage backgroundColor={Colors.bg}>
@@ -162,37 +222,67 @@ export default function AllTransactionsScreen() {
             >
               <ChevronLeftIcon size={18} color={Colors.textPrimary} strokeWidth={2.5} />
             </StyledPressable>
-            <StyledText fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>
+            <Text fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>
               Transactions
-            </StyledText>
+            </Text>
             <Stack width={38} />
           </Stack>
 
-          {/* Summary stat cards — label + amount top, sparkline bottom */}
+          {/* Summary stat cards — label + amount top, trend + sparkline bottom */}
           <Stack horizontal gap={10}>
             {/* Income */}
             <StyledCard flex={1} shadow="light" borderRadius={16} padding={14} backgroundColor={Colors.bgCard}>
-              <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={0.8}>INCOME</StyledText>
-              <StyledText fontSize={14} fontWeight="800" color={Colors.income} letterSpacing={-0.5} marginTop={4} marginBottom={8} numberOfLines={1} adjustsFontSizeToFit>
+              <Text fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={0.8}>INCOME</Text>
+              <Text fontSize={14} fontWeight="800" color={Colors.income} letterSpacing={-0.5} marginTop={4} marginBottom={6} numberOfLines={1} adjustsFontSizeToFit>
                 +{formatCurrency(totalIncome, symbol)}
-              </StyledText>
+              </Text>
+              {hasPreviousData && (
+                <Stack marginBottom={6}>
+                  <TrendIndicator
+                    percentage={incomeChange.percentage}
+                    isIncrease={incomeChange.isIncrease}
+                    trend={incomeChange.displayText}
+                    metricType="income"
+                  />
+                </Stack>
+              )}
               <MiniSpark color={Colors.income} up={false} w={80} h={24} />
             </StyledCard>
             {/* Expense */}
             <StyledCard flex={1} shadow="light" borderRadius={16} padding={14} backgroundColor={Colors.bgCard}>
-              <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={0.8}>EXPENSE</StyledText>
-              <StyledText fontSize={14} fontWeight="800" color={Colors.expense} letterSpacing={-0.5} marginTop={4} marginBottom={8} numberOfLines={1} adjustsFontSizeToFit>
+              <Text fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={0.8}>EXPENSE</Text>
+              <Text fontSize={14} fontWeight="800" color={Colors.expense} letterSpacing={-0.5} marginTop={4} marginBottom={6} numberOfLines={1} adjustsFontSizeToFit>
                 -{formatCurrency(totalExpense, symbol)}
-              </StyledText>
+              </Text>
+              {hasPreviousData && (
+                <Stack marginBottom={6}>
+                  <TrendIndicator
+                    percentage={expenseChange.percentage}
+                    isIncrease={expenseChange.isIncrease}
+                    trend={expenseChange.displayText}
+                    metricType="expense"
+                  />
+                </Stack>
+              )}
               <MiniSpark color={Colors.expense} up={true} w={80} h={24} />
             </StyledCard>
             {/* Net */}
             <StyledCard flex={1} shadow="light" borderRadius={16} padding={14} backgroundColor={Colors.bgCard}>
-              <StyledText fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={0.8}>NET</StyledText>
-              <StyledText fontSize={14} fontWeight="800" letterSpacing={-0.5} marginTop={4} marginBottom={8} numberOfLines={1} adjustsFontSizeToFit
+              <Text fontSize={10} fontWeight="700" color={Colors.textMuted} letterSpacing={0.8}>NET</Text>
+              <Text fontSize={14} fontWeight="800" letterSpacing={-0.5} marginTop={4} marginBottom={6} numberOfLines={1} adjustsFontSizeToFit
                 color={netBalance >= 0 ? Colors.income : Colors.expense}>
                 {netBalance >= 0 ? '+' : '-'}{formatCurrency(Math.abs(netBalance), symbol)}
-              </StyledText>
+              </Text>
+              {hasPreviousData && (
+                <Stack marginBottom={6}>
+                  <TrendIndicator
+                    percentage={netChange.percentage}
+                    isIncrease={netChange.isIncrease}
+                    trend={netChange.displayText}
+                    metricType="net"
+                  />
+                </Stack>
+              )}
               <MiniSpark color={netBalance >= 0 ? Colors.income : Colors.expense} up={netBalance >= 0} w={80} h={24} />
             </StyledCard>
           </Stack>
@@ -217,7 +307,7 @@ export default function AllTransactionsScreen() {
                   key={f.value}
                   label={f.label}
                   variant="filled"
-                  size="sm"
+                  size="md"
                   selected={active}
                   color={active ? Colors.white : Colors.primary}
                   bgColor={active ? Colors.primary : Colors.bgMuted}
@@ -243,9 +333,9 @@ export default function AllTransactionsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
           renderSectionHeader={({ section: { title } }) => (
             <Stack backgroundColor={Colors.bg} paddingHorizontal={20} paddingTop={16} paddingBottom={6}>
-              <StyledText fontSize={11} fontWeight="700" color={Colors.textMuted} letterSpacing={1.2}>
+              <Text fontSize={11} fontWeight="700" color={Colors.textMuted} letterSpacing={1.2}>
                 {title.toUpperCase()}
-              </StyledText>
+              </Text>
             </Stack>
           )}
           renderItem={({ item, index, section }) => (
@@ -255,7 +345,7 @@ export default function AllTransactionsScreen() {
             />
           )}
           ItemSeparatorComponent={() => (
-            <StyledDivider borderBottomColor={Colors.border} marginLeft={96} marginHorizontal={16} />
+            <RowDivider />
           )}
           ListEmptyComponent={
             <StyledEmptyState

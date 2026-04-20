@@ -9,11 +9,10 @@ import { toastService, loaderService } from 'fluent-styles'
 import { ALL_ACCOUNT_ICON_KEYS } from '../../icons/map'
 import { ColorPicker, IconPicker } from '../../components'
 import { ChevronLeftIcon, CheckIcon } from '../../icons'
-import { useAccounts, useSettings } from '../../hooks'
+import { useAccounts } from '../../hooks'
 import { useRecordsStore } from '../../stores'
 import { IconCircle } from '../../icons/map'
 import { AccountColors } from '../../constants'
-import { formatCurrency } from '../../utils'
 
 export default function AddAccountScreen() {
   const Colors = useColors()
@@ -22,8 +21,6 @@ export default function AddAccountScreen() {
 
   const { create, update } = useAccounts()
   const { invalidateData } = useRecordsStore()
-  const { data: settingsData } = useSettings()
-  const symbol = settingsData?.currencySymbol ?? '$'
 
   const [name,    setName]    = useState(params.name ?? '')
   const [icon,    setIcon]    = useState(params.icon ?? 'cash')
@@ -96,7 +93,7 @@ export default function AddAccountScreen() {
                 </StyledText>
                 {!isEdit && (
                   <StyledText fontSize={14} fontWeight="600" color="rgba(255,255,255,0.8)" letterSpacing={-0.3}>
-                    {formatCurrency(parseFloat(balance) || 0, symbol)}
+                    ${parseFloat(balance) > 0 ? parseFloat(balance).toFixed(2) : '0.00'}
                   </StyledText>
                 )}
               </Stack>

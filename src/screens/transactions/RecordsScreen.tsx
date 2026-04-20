@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { SectionList, RefreshControl } from 'react-native'
+import { SectionList, RefreshControl, useWindowDimensions } from 'react-native'
 import {
   Stack, StyledText, StyledPressable, StyledEmptyState, StyledSkeleton,
   StyledPage, StyledCard, StyledDivider,
@@ -20,11 +20,11 @@ import type { TransactionWithRefs } from '../../hooks'
 
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 function Sparkline({ color, bgColor, up = true }: { color: string; bgColor: string; up?: boolean }) {
-  const W = 80, H = 38
+  const W = 40, H = 38
   const linePath = up
-    ? `M 0 ${H-6} C 12 ${H-8} 20 ${H-18} 32 ${H-16} C 44 ${H-14} 52 ${H-28} 80 6`
-    : `M 0 8 C 12 6 22 ${H-22} 36 ${H-18} C 50 ${H-14} 60 ${H-10} 80 ${H-6}`
-  const areaPath = linePath + ` L 80 ${H} L 0 ${H} Z`
+    ? `M 0 ${H-6} C 6 ${H-8} 10 ${H-18} 16 ${H-16} C 22 ${H-14} 26 ${H-28} 40 6`
+    : `M 0 8 C 6 6 11 ${H-22} 18 ${H-18} C 25 ${H-14} 30 ${H-10} 40 ${H-6}`
+  const areaPath = linePath + ` L 40 ${H} L 0 ${H} Z`
   const gradId = `sg_${color.replace(/[^a-z0-9]/gi, '')}`
   return (
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
@@ -53,7 +53,7 @@ function HomeHeader({ symbol }: { symbol: string }) {
       <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={20}>
         <Stack gap={2}>
           <Text variant="subLabel" color={Colors.textMuted} letterSpacing={0.2}>Welcome back</Text>
-          <Text fontSize={26} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.8}>Claro</Text>
+          <Text fontSize={32} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.8}>Claro</Text>
         </Stack>
         <StyledPressable width={42} height={42} borderRadius={21} backgroundColor={Colors.bgCard}
           alignItems="center" justifyContent="center"
@@ -95,12 +95,11 @@ function SummaryCard({ label, amount, symbol, color, lightColor, bgColor, up }: 
   const Colors = useColors()
   return (
     <StyledCard flex={1} borderRadius={18} padding={16} backgroundColor={Colors.bgCard}
-      style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
-      <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={12}>
+>
+      <Stack horizontal alignItems="center" gap={8} justifyContent="space-between" >
         <Text variant="label" color={color}>{label}</Text>
         <Sparkline color={color} bgColor={bgColor} up={up} />
       </Stack>
-      <Text variant="caption" color={Colors.textMuted} fontWeight="600" letterSpacing={0.3} marginBottom={4}>THIS MONTH</Text>
       <Text fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5} numberOfLines={1} adjustsFontSizeToFit>
         {formatCurrency(amount, symbol)}
       </Text>
@@ -111,7 +110,7 @@ function SummaryCard({ label, amount, symbol, color, lightColor, bgColor, up }: 
 function MonthlySummary({ income, expense, symbol }: { income: number; expense: number; symbol: string }) {
   const Colors = useColors()
   return (
-    <Stack horizontal gap={12} paddingHorizontal={20} paddingTop={16} paddingBottom={8}>
+    <Stack horizontal gap={12} paddingHorizontal={20} paddingTop={8} paddingBottom={8}>
       <SummaryCard label="Expense" amount={expense} symbol={symbol} color={Colors.expense} lightColor={Colors.expenseLight} bgColor={Colors.bgCard} up={true} />
       <SummaryCard label="Income"  amount={income}  symbol={symbol} color={Colors.income}  lightColor={Colors.incomeLight}  bgColor={Colors.bgCard} up={false} />
     </Stack>
@@ -148,6 +147,12 @@ function TransactionRow({ tx, symbol, onDelete }: { tx: TransactionWithRefs; sym
       </StyledPressable>
     </SwipeableRow>
   )
+}
+
+function RowDivider() {
+  const Colors = useColors()
+  const width = useWindowDimensions().width
+  return <Stack horizontal width={width - 66-16} height={1} flex={1} backgroundColor={Colors.border} marginLeft={66} opacity={0.6} />
 }
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
@@ -190,12 +195,11 @@ export default function RecordsScreen() {
       <Stack flex={1}>
         <HomeHeader symbol={symbol} />
         <MonthlySummary income={totalIncome} expense={totalExpense} symbol={symbol} />
-
         <Stack horizontal alignItems="center" justifyContent="space-between"
-          paddingHorizontal={20} paddingTop={8} paddingBottom={10}>
-          <Text variant="header" fontSize={17} color={Colors.textPrimary} letterSpacing={-0.3}>Transactions</Text>
+          paddingHorizontal={20} paddingTop={8}>
+          <Text variant="label" fontSize={17} color={Colors.textMuted} letterSpacing={-0.3}>Transactions</Text>
           <StyledPressable onPress={() => router.push('/all-transactions' as any)}>
-            <Text variant="label" fontSize={13} color={Colors.primary}>See All →</Text>
+            <Text variant="label" fontSize={13} color={Colors.textMuted}>See All →</Text>
           </StyledPressable>
         </Stack>
 
@@ -205,7 +209,7 @@ export default function RecordsScreen() {
           <SectionList
             sections={sections}
             keyExtractor={item => item.id}
-            contentContainerStyle={{ paddingBottom: 120 }}
+            showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
             renderSectionHeader={({ section: { title } }) => (
               <Stack backgroundColor={Colors.bg} paddingHorizontal={20} paddingTop={16} paddingBottom={6}>
@@ -227,9 +231,7 @@ export default function RecordsScreen() {
                 </StyledCard>
               )
             }}
-            ItemSeparatorComponent={() => (
-              <StyledDivider borderBottomColor={Colors.border} marginLeft={80} marginHorizontal={16} opacity={0.6} />
-            )}
+            ItemSeparatorComponent={RowDivider}
             ListEmptyComponent={
               <StyledEmptyState variant="minimal" illustration="📭" title="No transactions" description="Tap + to add your first transaction" animated />
             }
@@ -239,7 +241,7 @@ export default function RecordsScreen() {
         <StyledPressable position="absolute" right={20} bottom={100} width={58} height={58} borderRadius={29}
           backgroundColor={Colors.primary} alignItems="center" justifyContent="center"
           onPress={() => router.push('/add-transaction' as any)}
-          style={{ shadowColor: Colors.primaryDark, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 10 }}>
+      >
           <AddIcon size={26} color="#fff" strokeWidth={2.5} />
         </StyledPressable>
       </Stack>

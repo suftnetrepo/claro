@@ -57,6 +57,8 @@ type TextVariant =
   | 'metric_small'
   | 'hero'
   | 'overline'
+  | 'amount'
+  | 'amountSmall'
 
 type AppTextProps = StyledTextProps & {
   variant?: TextVariant
@@ -150,6 +152,18 @@ const TEXT_VARIANTS: Record<TextVariant, any> = {
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
+  amount: {
+  fontSize: 38,
+  fontWeight: '800',
+  lineHeight: 44,
+  letterSpacing: -1.5,
+},
+amountSmall: {
+  fontSize: 22,
+  fontWeight: '700',
+  lineHeight: 28,
+  letterSpacing: -0.5,
+},
 }
 
 const Text = styled<AppTextProps>(StyledText, {

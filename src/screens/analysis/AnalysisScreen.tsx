@@ -26,6 +26,7 @@ import { Colors, useColors } from "../../constants";
 import { useAnalysis, useSettings, useExpenseRangeTotal } from "../../hooks";
 import { useRecordsStore } from "../../stores";
 import { formatCurrency } from "../../utils";
+import { Text } from "../../components";
 import type { CategorySpending } from "../../hooks";
 
 const TABS = [
@@ -61,9 +62,9 @@ function MonthNav() {
       >
         <ChevronLeftIcon size={20} color={Colors.primary} strokeWidth={2.2} />
       </StyledPressable>
-      <StyledText fontSize={16} fontWeight="600" color={Colors.primary}>
+      <Text variant="label" fontSize={16} color={Colors.primary}>
         {format(selectedMonth, "MMMM, yyyy")}
-      </StyledText>
+      </Text>
       <StyledPressable
         width={36}
         height={36}
@@ -211,23 +212,24 @@ function MoneyCard({
           alignItems="flex-start"
         >
           <Stack flex={1}>
-            <StyledText
+            <Text
               fontSize={13}
               fontWeight="600"
               color={Colors.textMuted}
               letterSpacing={0.2}
             >
               This Month
-            </StyledText>
+            </Text>
             <Stack horizontal alignItems="baseline" gap={6} marginTop={4}>
-              <StyledText
+              <Text
                 fontSize={34}
+                variant="amountSmall"
                 fontWeight="700"
                 color={color}
                 letterSpacing={-0.8}
               >
                 {formatCurrency(amount, symbol)}
-              </StyledText>
+              </Text>
             </Stack>
           </Stack>
           {/* Sparkline + pct badge */}
@@ -245,9 +247,9 @@ function MoneyCard({
                 borderRadius={12}
                 backgroundColor={badgeBg}
               >
-                <StyledText fontSize={11} fontWeight="700" color={badgeColor}>
+                <Text fontSize={11} fontWeight="700" color={badgeColor}>
                   {isUp ? "▲" : "▼"} {Math.abs(pctChange!).toFixed(1)}%
-                </StyledText>
+                </Text>
               </Stack>
             )}
           </Stack>
@@ -280,16 +282,16 @@ function TxRow({ item, symbol }: { item: CategorySpending; symbol: string }) {
         size={40}
       />
       <Stack flex={1}>
-        <StyledText fontSize={14} fontWeight="600" color={Colors.textPrimary}>
+        <Text fontSize={14} fontWeight="600" color={Colors.textPrimary}>
           {item.categoryName}
-        </StyledText>
-        <StyledText fontSize={12} color={Colors.textMuted} marginTop={2}>
+        </Text>
+        <Text fontSize={12} color={Colors.textMuted} marginTop={2}>
           {item.percentage.toFixed(0)}% of total
-        </StyledText>
+        </Text>
       </Stack>
-      <StyledText fontSize={14} fontWeight="600" color={Colors.textPrimary}>
+      <Text fontSize={14} fontWeight="600" color={Colors.textPrimary}>
         {formatCurrency(item.total, symbol)}
-      </StyledText>
+      </Text>
     </Stack>
   );
 }
@@ -357,9 +359,9 @@ function SpendingTab({
       >
         {totalExpense === 0 ? (
           <Stack padding={20} alignItems="center">
-            <StyledText fontSize={13} color={Colors.textMuted}>
+            <Text fontSize={13} color={Colors.textMuted}>
               No spending this month
-            </StyledText>
+            </Text>
           </Stack>
         ) : (
           expenseByCategory.map((item, i) => (
@@ -385,17 +387,17 @@ function SpendingTab({
         paddingHorizontal={4}
         paddingVertical={8}
       >
-        <StyledText fontSize={13} color={Colors.textMuted}>
+        <Text fontSize={13} color={Colors.textMuted}>
           Net Balance This Month
-        </StyledText>
-        <StyledText
+        </Text>
+        <Text
           fontSize={15}
           fontWeight="700"
           color={netBalance >= 0 ? Colors.income : Colors.expense}
         >
           {netBalance >= 0 ? "+" : ""}
           {formatCurrency(netBalance, symbol)}
-        </StyledText>
+        </Text>
       </Stack>
     </ScrollView>
   );
@@ -463,9 +465,9 @@ function IncomeTab({
       >
         {totalIncome === 0 ? (
           <Stack padding={20} alignItems="center">
-            <StyledText fontSize={13} color={Colors.textMuted}>
+            <Text fontSize={13} color={Colors.textMuted}>
               No income this month
-            </StyledText>
+            </Text>
           </Stack>
         ) : (
           incomeByCategory.map((item, i) => (
@@ -491,17 +493,17 @@ function IncomeTab({
         paddingHorizontal={4}
         paddingVertical={8}
       >
-        <StyledText fontSize={13} color={Colors.textMuted}>
+        <Text fontSize={13} color={Colors.textMuted}>
           Net Balance This Month
-        </StyledText>
-        <StyledText
+        </Text>
+        <Text
           fontSize={15}
           fontWeight="700"
           color={netBalance >= 0 ? Colors.income : Colors.expense}
         >
           {netBalance >= 0 ? "+" : ""}
           {formatCurrency(netBalance, symbol)}
-        </StyledText>
+        </Text>
       </Stack>
     </ScrollView>
   );
@@ -906,26 +908,22 @@ function TrendsTab({
       >
         {/* Header */}
         <Stack padding={CARD_PAD} paddingBottom={0}>
-          <Stack
-            horizontal
-            alignItems="center"
-            justifyContent="space-between"
-            marginBottom={4}
-          >
-            <StyledText
+          <Stack horizontal alignItems="center" justifyContent="space-between">
+            <Text
+              variant="title"
               fontSize={26}
               fontWeight="700"
               color={INC_TITLE}
               letterSpacing={-0.5}
             >
               Income by
-            </StyledText>
+            </Text>
             <MonthlyPill />
           </Stack>
-          <StyledText fontSize={12} color={INC_LABEL} marginBottom={18}>
+          <Text fontSize={12} color={INC_LABEL} marginBottom={8}>
             Viewing last {n} months chart
-          </StyledText>
-          <StyledText
+          </Text>
+          <Text
             fontSize={32}
             fontWeight="700"
             color={INC_TITLE}
@@ -933,10 +931,15 @@ function TrendsTab({
             marginBottom={2}
           >
             {formatCurrency(totalIncome, symbol)}
-          </StyledText>
-          <StyledText fontSize={12} color={INC_LABEL} marginBottom={16}>
+          </Text>
+          <Text
+            variant="caption"
+            fontSize={12}
+            color={INC_LABEL}
+            marginBottom={16}
+          >
             Total income
-          </StyledText>
+          </Text>
         </Stack>
 
         {/* Bar chart */}
@@ -996,26 +999,22 @@ function TrendsTab({
       >
         {/* Header */}
         <Stack padding={CARD_PAD} paddingBottom={0}>
-          <Stack
-            horizontal
-            alignItems="center"
-            justifyContent="space-between"
-            marginBottom={4}
-          >
-            <StyledText
+          <Stack horizontal alignItems="center" justifyContent="space-between">
+            <Text
+              variant="title"
               fontSize={26}
               fontWeight="700"
-              color={EXP_TITLE}
+              color={INC_TITLE}
               letterSpacing={-0.5}
             >
               Expense by
-            </StyledText>
+            </Text>
             <MonthlyPill />
           </Stack>
-          <StyledText fontSize={12} color={EXP_LABEL} marginBottom={18}>
+          <Text fontSize={12} color={EXP_LABEL} marginBottom={8}>
             Viewing last {filteredExpense.length} months chart
-          </StyledText>
-          <StyledText
+          </Text>
+          <Text
             fontSize={32}
             fontWeight="700"
             color={EXP_TITLE}
@@ -1023,10 +1022,15 @@ function TrendsTab({
             marginBottom={2}
           >
             {formatCurrency(rangeTotal.expense || filteredExpTotal, symbol)}
-          </StyledText>
-          <StyledText fontSize={12} color={EXP_LABEL} marginBottom={12}>
+          </Text>
+          <Text
+            variant="caption"
+            fontSize={12}
+            color={EXP_LABEL}
+            marginBottom={12}
+          >
             Total expense
-          </StyledText>
+          </Text>
         </Stack>
 
         {/* Line chart */}
@@ -1088,42 +1092,43 @@ export default function AnalysisScreen() {
     <StyledPage flex={1} backgroundColor={Colors.bg}>
       <Stack flex={1}>
         <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
-          <StyledText
-            fontSize={22}
+          <Text
+             variant="title"
+    
             fontWeight="700"
             color={Colors.textPrimary}
             letterSpacing={-0.5}
           >
             Analysis
-          </StyledText>
+          </Text>
         </Stack>
 
         <MonthNav />
         <TabBar
-            options={TABS}
-            value={tab}
-            onChange={setTab}
-            indicator="line"
-            showBorder
-            indicatorHeight={4}
-            colors={{
-              background: Colors.bgCard,
-              activeText: UI_ACCENT,
-              text: Colors.textMuted,
-              indicator: UI_ACCENT,
-              border: `rgba(255,255,255,0.08)`,
-              badge: UI_ACCENT,
-              activeChipBg: UI_ACCENT,
-              activeChipText: Colors.textOnDark,
-              disabled: Colors.textMuted,
-            }}
-            labelBulge={false}
-            style={{
-              paddingHorizontal: 20,
-              borderRadius: 30,
-              marginHorizontal: 20,
-            }}
-          />
+          options={TABS}
+          value={tab}
+          onChange={setTab}
+          indicator="line"
+          showBorder
+          indicatorHeight={4}
+          colors={{
+            background: Colors.bgCard,
+            activeText: UI_ACCENT,
+            text: Colors.textMuted,
+            indicator: UI_ACCENT,
+            border: `rgba(255,255,255,0.08)`,
+            badge: UI_ACCENT,
+            activeChipBg: UI_ACCENT,
+            activeChipText: Colors.textOnDark,
+            disabled: Colors.textMuted,
+          }}
+          labelBulge={false}
+          style={{
+            paddingHorizontal: 20,
+            borderRadius: 30,
+            marginHorizontal: 20,
+          }}
+        />
         <Stack flex={1}>
           {tab === "spending" && (
             <SpendingTab data={data} symbol={symbol} loading={loading} />

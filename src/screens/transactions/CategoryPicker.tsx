@@ -6,6 +6,8 @@ import {
 import { IconCircle } from '../../icons/map'
 import { Colors, useColors } from '../../constants'
 import type { Category } from '../../db/schema'
+import { Text } from '@/components'
+
 
 interface CategoryPickerProps {
   visible:            boolean
@@ -82,7 +84,7 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
                     bg={item.color}
                     size={48}
                   />
-                  <StyledText
+                  <Text
                     fontSize={10}
                     fontWeight="600"
                     color={isSelected ? Colors.primary : Colors.textMuted}
@@ -90,7 +92,7 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
                     numberOfLines={2}
                   >
                     {item.name}
-                  </StyledText>
+                  </Text>
                 </StyledPressable>
               )
             })}

@@ -74,14 +74,14 @@ export default function AddTransactionScreen() {
   return (
     <StyledPage backgroundColor={Colors.bg}>
       <StyledHeader.Full>
-        <Stack backgroundColor={Colors.bg} paddingHorizontal={20}  paddingBottom={14}>
+        <Stack backgroundColor={Colors.bg} paddingHorizontal={20} >
           <Stack horizontal alignItems="center" justifyContent="space-between">
             <StyledPressable width={38} height={38} borderRadius={19} backgroundColor={Colors.bgCard}
               alignItems="center" justifyContent="center" onPress={() => router.back()}
               style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
               <ChevronLeftIcon size={18} color={Colors.textPrimary} strokeWidth={2.5} />
             </StyledPressable>
-            <Text fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>Add Transaction</Text>
+            <Text variant='title' fontWeight="700" color={Colors.textPrimary} letterSpacing={-0.3}>Add Transaction</Text>
             <Stack width={38} />
           </Stack>
         </Stack>

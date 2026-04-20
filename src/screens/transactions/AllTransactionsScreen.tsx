@@ -62,7 +62,7 @@ function StatCard({ label, amount, symbol, color, up, count, cardWidth }: {
         </Stack>
         {/* Bottom row: amount left, sparkline right — same baseline */}
         <Stack flexDirection="row" alignItems="center" justifyContent="space-between">
-          <Text fontSize={30} fontWeight="800" color={color} letterSpacing={-1}>
+          <Text variant='title' fontSize={30} fontWeight="800" color={color} letterSpacing={-1}>
             {prefix}{formatCurrency(Math.abs(amount), symbol)}
           </Text>
           <Svg width={SW} height={SH} viewBox={`0 0 ${SW} ${SH}`}>
@@ -231,6 +231,12 @@ export default function AllTransactionsScreen() {
   // Active filter count for badge
   const activeFilters = (filter !== 'all' ? 1 : 0) + (dateRange !== '1M' ? 1 : 0)
 
+  function RowDivider() {
+    const Colors = useColors()
+    const width = useWindowDimensions().width
+    return <Stack horizontal width={width - 66-16} height={1} flex={1} backgroundColor={Colors.border} marginLeft={66} opacity={0.6} />
+  }
+
   return (
     <StyledPage backgroundColor={Colors.bg}>
       <StyledHeader.Full>
@@ -243,7 +249,7 @@ export default function AllTransactionsScreen() {
               style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
               <ChevronLeftIcon size={18} color={Colors.textPrimary} strokeWidth={2.5} />
             </StyledPressable>
-            <Text fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>Transactions</Text>
+            <Text variant='title' fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>Transactions</Text>
             {/* Filter button with active badge */}
             <StyledPressable width={38} height={38} borderRadius={19}
               backgroundColor={activeFilters > 0 ? Colors.primary : Colors.bgCard}
@@ -253,7 +259,7 @@ export default function AllTransactionsScreen() {
               {activeFilters > 0 && (
                 <Stack position="absolute" top={-2} right={-2} width={16} height={16} borderRadius={8}
                   backgroundColor={Colors.expense} alignItems="center" justifyContent="center">
-                <Text fontSize={9} fontWeight="800" color="#fff">{activeFilters}</Text>
+                <Text fontSize={2} fontWeight="800" color="#fff">{activeFilters}</Text>
                 </Stack>
               )}
             </StyledPressable>
@@ -271,13 +277,6 @@ export default function AllTransactionsScreen() {
               color={netBalance >= 0 ? Colors.income : Colors.expense}
               up={netBalance >= 0} count={dateFiltered.length} cardWidth={cardWidth} />
           </ScrollView>
-
-          {/* Search */}
-          <Stack paddingHorizontal={20}>
-            <StyledTextInput variant="filled" placeholder="Search transactions…" value={search}
-              onChangeText={setSearch} clearable borderRadius={14} fontSize={14} />
-          </Stack>
-
         </Stack>
       </StyledHeader.Full>
 
@@ -300,7 +299,7 @@ export default function AllTransactionsScreen() {
               isFirst={index === 0} isLast={index === section.data.length - 1} />
           )}
           ItemSeparatorComponent={() => (
-            <StyledDivider borderBottomColor={Colors.border} marginLeft={80} marginRight={16} opacity={0.6} />
+           <RowDivider />
           )}
           ListEmptyComponent={
             <StyledEmptyState variant="minimal" illustration="📭"
@@ -407,7 +406,7 @@ export default function AllTransactionsScreen() {
 
                 {/* FROM collapse — open on step 'from' */}
                 <Collapse
-                  variant="bordered"
+                  variant="ghost"
                   collapse={customStep === 'from'}
                   onCollapse={(open) => { if (open) setCustomStep('from') }}
                   leading={
@@ -442,7 +441,7 @@ export default function AllTransactionsScreen() {
 
                 {/* TO collapse — open on step 'to' */}
                 <Collapse
-                  variant="bordered"
+                  variant="ghost"
                   collapse={customStep === 'to'}
                   onCollapse={(open) => { if (open) setCustomStep('to') }}
                   leading={

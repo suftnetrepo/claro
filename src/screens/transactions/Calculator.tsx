@@ -1,12 +1,14 @@
-import React, { useState, useCallback } from 'react'
-import { Stack, StyledText, StyledPressable } from 'fluent-styles'
+import React, { useCallback } from 'react'
+import { View, TouchableOpacity } from 'react-native'
+import { StyledText } from 'fluent-styles'
 import { BackspaceIcon } from '../../icons'
 import { useColors } from '../../constants'
 
 interface CalculatorProps {
-  value:     string
-  onChange:  (val: string) => void
-  symbol:    string
+  value:    string
+  onChange: (val: string) => void
+  symbol:   string
+  accentColor?: string
 }
 
 const KEYS = [
@@ -16,84 +18,68 @@ const KEYS = [
   ['.', '0', '⌫'],
 ]
 
-export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol }) => {
+export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol, accentColor }) => {
+  const Colors = useColors()
+  const accent  = accentColor ?? Colors.primary
+
   const handleKey = useCallback((key: string) => {
-    if (key === '⌫') {
-      onChange(value.length <= 1 ? '0' : value.slice(0, -1))
-      return
-    }
-
-    // Prevent multiple decimals
+    if (key === '⌫') { onChange(value.length <= 1 ? '0' : value.slice(0, -1)); return }
     if (key === '.' && value.includes('.')) return
-
-    // Start fresh if currently showing 0
-    if (value === '0' && key !== '.') {
-      onChange(key)
-      return
-    }
-
-    // Max 2 decimal places
+    if (value === '0' && key !== '.') { onChange(key); return }
     const dotIndex = value.indexOf('.')
     if (dotIndex !== -1 && value.length - dotIndex > 2) return
-
-    // Max 10 digits total
     if (value.replace('.', '').length >= 10) return
-
     onChange(value + key)
   }, [value, onChange])
 
-  const Colors = useColors()
   const displayValue = value === '' ? '0' : value
 
   return (
-    <Stack>
+    <View>
       {/* Amount display */}
-      <Stack alignItems="center" justifyContent="center" paddingVertical={32} paddingHorizontal={24}>
-        <Stack horizontal alignItems="baseline" gap={2}>
-          <StyledText fontSize={22} fontWeight="700" color={Colors.textMuted}>
-            {symbol}
-          </StyledText>
+      <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 28, paddingHorizontal: 24 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+          <StyledText fontSize={22} fontWeight="700" color={Colors.textMuted}>{symbol}</StyledText>
           <StyledText
-            fontSize={displayValue.length > 8 ? 40 : 56}
+            fontSize={displayValue.length > 8 ? 42 : 58}
             fontWeight="800"
             color={Colors.textPrimary}
-            letterSpacing={-1.5}
-            lineHeight={displayValue.length > 8 ? 48 : 62}
+            letterSpacing={-2}
           >
             {displayValue}
           </StyledText>
-        </Stack>
-      </Stack>
+        </View>
+      </View>
 
-      {/* Keypad grid — softer borders and visual weight */}
-      <Stack paddingHorizontal={20} paddingBottom={8} gap={6}>
+      {/* Keypad — clean card-style keys matching Settings */}
+      <View style={{ paddingHorizontal: 20, paddingBottom: 8, gap: 8 }}>
         {KEYS.map((row, ri) => (
-          <Stack key={ri} horizontal gap={6}>
-            {row.map((key) => (
-              <StyledPressable
-                key={key}
-                flex={1}
-                height={68}
-                borderRadius={16}
-                backgroundColor={key === '⌫' ? Colors.expenseLight + '40' : Colors.bgCard}
-                borderWidth={0.5}
-                borderColor={key === '⌫' ? Colors.expense + '30' : Colors.border + '50'}
-                alignItems="center"
-                justifyContent="center"
-                onPress={() => handleKey(key)}
-              >
-                {key === '⌫' ? (
-                  <BackspaceIcon size={20} color={Colors.expense + 'CC'} />
-                ) : (
-                  <StyledText fontSize={22} fontWeight="600" color={Colors.textPrimary}>
-                    {key}
-                  </StyledText>
-                )}
-              </StyledPressable>
-            ))}
-          </Stack>
+          <View key={ri} style={{ flexDirection: 'row', gap: 8 }}>
+            {row.map((key) => {
+              const isBackspace = key === '⌫'
+              return (
+                <TouchableOpacity
+                  key={key}
+                  activeOpacity={0.65}
+                  onPress={() => handleKey(key)}
+                  style={{
+                    flex: 1, height: 66, borderRadius: 16,
+                    backgroundColor: isBackspace ? `${accent}18` : Colors.bgCard,
+                    alignItems: 'center', justifyContent: 'center',
+                    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4,
+                    shadowOffset: { width: 0, height: 1 }, elevation: 1,
+                  }}>
+                  {isBackspace ? (
+                    <BackspaceIcon size={22} color={accent} strokeWidth={2} />
+                  ) : (
+                    <StyledText fontSize={22} fontWeight="600" color={Colors.textPrimary}>{key}</StyledText>
+                  )}
+                </TouchableOpacity>
+              )
+            })}
+          </View>
         ))}
-      </Stack>
-    </Stack>
+      </View>
+    </View>
   )
 }

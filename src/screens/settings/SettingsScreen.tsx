@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { router } from 'expo-router'
-import { FlatList, ActivityIndicator } from 'react-native'
+import { View, ScrollView, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native'
 import {
-  Stack, StyledText, StyledPressable, StyledScrollView,
-  StyledCard, StyledDivider, Switch, Popup, StyledPage,
+  Stack, StyledText, StyledPressable, Switch, Popup, StyledPage, StyledDivider,
 } from 'fluent-styles'
 import { Text } from '../../components'
 import { toastService, dialogueService } from 'fluent-styles'
@@ -14,7 +13,6 @@ import {
 } from '../../icons'
 import { Colors, useColors, CURRENCIES } from '../../constants'
 import { usePremium } from '../../hooks/usePremium'
-import { PREMIUM_THEMES } from '../../constants/premium'
 import { THEMES, THEME_META, type ThemeKey } from '../../constants/themes'
 import { useThemeStore, usePremiumStore } from '../../stores'
 import { exportCSV, exportJSON } from '../../services/exportService'
@@ -27,157 +25,137 @@ import {
 } from '../../utils/security'
 
 // ─── Section header ───────────────────────────────────────────────────────────
-const SectionHeader: React.FC<{ label: string }> = ({ label }) => (
-  <Text
-    variant="overline" color={Colors.textMuted}
-    letterSpacing={1}
-    paddingHorizontal={20} paddingTop={24} paddingBottom={8}
-  >
-    {label.toUpperCase()}
-  </Text>
-)
-
-// ─── Row — navigates or shows chevron ────────────────────────────────────────
-const SettingsRow: React.FC<{
-  icon:     React.ReactNode
-  label:    string
-  value?:   string
-  subtitle?: string
-  onPress:  () => void
-  danger?:  boolean
-  loading?:  boolean
-}> = ({ icon, label, value, subtitle, onPress, danger = false, loading = false }) => {
+function SectionHeader({ label }: { label: string }) {
   const Colors = useColors()
   return (
-    <StyledPressable
-      flexDirection="row" alignItems="center" gap={14}
-      paddingHorizontal={20} paddingVertical={14}
-      backgroundColor={Colors.bgCard}
-      onPress={onPress}
-      disabled={loading}
-      opacity={loading ? 0.6 : 1}
-    >
-      <Stack width={28} height={28} alignItems="center" justifyContent="center">
-        {icon}
-      </Stack>
-      <Stack flex={1} gap={subtitle ? 2 : 0}>
-        <Text variant="button"
-          color={danger ? Colors.expense : Colors.textPrimary}>
-          {label}
-        </Text>
-        {subtitle ? (
-          <Text variant="bodySmall" color={Colors.textMuted}>{subtitle}</Text>
-        ) : null}
-      </Stack>
-      {value && !loading ? (
-        <Text variant="body" color={Colors.textMuted} marginRight={6}>{value}</Text>
-      ) : null}
-      {loading ? (
-        <ActivityIndicator size="small" color={Colors.primary} />
-      ) : (
-        <ChevronRightIcon size={16} color={Colors.textMuted} strokeWidth={2} />
-      )}
-    </StyledPressable>
+    <View style={{ paddingHorizontal: 20, paddingTop: 28, paddingBottom: 8 }}>
+      <StyledText fontSize={11} fontWeight="700" color={Colors.textMuted} letterSpacing={1.2}>
+        {label.toUpperCase()}
+      </StyledText>
+    </View>
   )
 }
 
-// ─── Row — toggle switch ──────────────────────────────────────────────────────
-const SwitchRow: React.FC<{
-  icon:     React.ReactNode
-  label:    string
-  subtitle?: string
-  value:    boolean
-  onChange: (v: boolean) => void
-  disabled?: boolean
-}> = ({ icon, label, subtitle, value, onChange, disabled }) => (
-  <Stack
-    flexDirection="row" alignItems="center" gap={14}
-    paddingHorizontal={20} paddingVertical={14}
-    backgroundColor={Colors.bgCard}
-  >
-    <Stack width={28} height={28} alignItems="center" justifyContent="center">
+// ─── Icon pill — colored background behind row icon ───────────────────────────
+function IconPill({ icon, color, bg }: { icon: React.ReactNode; color?: string; bg: string }) {
+  return (
+    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
       {icon}
-    </Stack>
-    <Stack flex={1} gap={2}>
-      <Text variant="button" color={Colors.textPrimary}>{label}</Text>
-      {subtitle ? (
-        <Text variant="bodySmall" color={Colors.textMuted}>{subtitle}</Text>
-      ) : null}
-    </Stack>
-    <Switch
-      value={value}
-      onChange={onChange}
-      disabled={disabled}
-      size="sm"
-      activeColor={Colors.primary}
-    />
-  </Stack>
-)
+    </View>
+  )
+}
 
-// ─── Currency picker sheet ────────────────────────────────────────────────────
-const CurrencyPicker: React.FC<{
-  current:  string
-  onSelect: (code: string, symbol: string) => void
-}> = ({ current, onSelect }) => (
-  <FlatList
-    data={[...CURRENCIES]}
-    keyExtractor={item => item.code}
-    style={{ maxHeight: 400 }}
-    renderItem={({ item }) => {
-      const isSelected = item.code === current
-      return (
-        <StyledPressable
-          flexDirection="row" alignItems="center" gap={14}
-          paddingHorizontal={20} paddingVertical={14}
-          backgroundColor={isSelected ? Colors.accent + '33' : Colors.bgCard}
-          onPress={() => onSelect(item.code, item.symbol)}
-        >
-          <Stack
-            width={40} height={40} borderRadius={20}
-            backgroundColor={Colors.accent}
-            alignItems="center" justifyContent="center"
+// ─── Settings row ─────────────────────────────────────────────────────────────
+function SettingsRow({ icon, label, value, subtitle, onPress, danger = false, loading = false }: {
+  icon: React.ReactNode; label: string; value?: string
+  subtitle?: string; onPress: () => void; danger?: boolean; loading?: boolean
+}) {
+  const Colors = useColors()
+  return (
+    <TouchableOpacity onPress={onPress} disabled={loading} activeOpacity={0.7}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, opacity: loading ? 0.6 : 1, backgroundColor: Colors.bgCard }}>
+      {icon}
+      <View style={{ flex: 1, gap: subtitle ? 2 : 0 }}>
+        <StyledText fontSize={15} fontWeight="600" color={danger ? Colors.expense : Colors.textPrimary}>{label}</StyledText>
+        {subtitle && <StyledText fontSize={12} color={Colors.textMuted}>{subtitle}</StyledText>}
+      </View>
+      {value && !loading && <StyledText fontSize={13} color={Colors.textMuted} style={{ marginRight: 4 }}>{value}</StyledText>}
+      {loading ? <ActivityIndicator size="small" color={Colors.primary} /> : <ChevronRightIcon size={16} color={Colors.textMuted} strokeWidth={2} />}
+    </TouchableOpacity>
+  )
+}
+
+// ─── Switch row ───────────────────────────────────────────────────────────────
+function SwitchRow({ icon, label, subtitle, value, onChange, disabled }: {
+  icon: React.ReactNode; label: string; subtitle?: string
+  value: boolean; onChange: (v: boolean) => void; disabled?: boolean
+}) {
+  const Colors = useColors()
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: Colors.bgCard }}>
+      {icon}
+      <View style={{ flex: 1, gap: 2 }}>
+        <StyledText fontSize={15} fontWeight="600" color={Colors.textPrimary}>{label}</StyledText>
+        {subtitle && <StyledText fontSize={12} color={Colors.textMuted}>{subtitle}</StyledText>}
+      </View>
+      <Switch value={value} onChange={onChange} disabled={disabled} size="sm" activeColor={Colors.primary} />
+    </View>
+  )
+}
+
+// ─── Settings group card ──────────────────────────────────────────────────────
+function SettingsGroup({ children }: { children: React.ReactNode }) {
+  const Colors = useColors()
+  return (
+    <View style={{
+      marginHorizontal: 16, borderRadius: 18, overflow: 'hidden',
+      backgroundColor: Colors.bgCard,
+      shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    }}>
+      {children}
+    </View>
+  )
+}
+
+// ─── Row divider ─────────────────────────────────────────────────────────────
+function RowDivider() {
+  const Colors = useColors()
+  return <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 66 }} />
+}
+
+// ─── Currency picker ──────────────────────────────────────────────────────────
+function CurrencyPicker({ current, onSelect }: { current: string; onSelect: (code: string, symbol: string) => void }) {
+  const Colors = useColors()
+  return (
+    <FlatList
+      data={[...CURRENCIES]}
+      keyExtractor={item => item.code}
+      style={{ maxHeight: 400 }}
+      renderItem={({ item }) => {
+        const isSelected = item.code === current
+        return (
+          <StyledPressable
+            flexDirection="row" alignItems="center" gap={14}
+            paddingHorizontal={20} paddingVertical={14}
+            backgroundColor={isSelected ? Colors.accent : Colors.bgCard}
+            onPress={() => onSelect(item.code, item.symbol)}
           >
-            <Text variant="button" color={Colors.primary}>
-              {item.symbol}
-            </Text>
-          </Stack>
-          <Stack flex={1} gap={2}>
-            <Text variant="button" color={Colors.textPrimary}>{item.code}</Text>
-            <Text variant="bodySmall" color={Colors.textMuted}>{item.name}</Text>
-          </Stack>
-          {isSelected && <CheckIcon size={18} color={Colors.primary} strokeWidth={2.5} />}
-        </StyledPressable>
-      )
-    }}
-    ItemSeparatorComponent={() => (
-      <StyledDivider borderBottomColor={Colors.border} marginLeft={74} />
-    )}
-  />
-)
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+              <StyledText fontSize={16} fontWeight="700" color={Colors.primary}>{item.symbol}</StyledText>
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <StyledText fontSize={15} fontWeight="600" color={Colors.textPrimary}>{item.code}</StyledText>
+              <StyledText fontSize={12} color={Colors.textMuted}>{item.name}</StyledText>
+            </View>
+            {isSelected && <CheckIcon size={18} color={Colors.primary} strokeWidth={2.5} />}
+          </StyledPressable>
+        )
+      }}
+      ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 74 }} />}
+    />
+  )
+}
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function SettingsScreen() {
-  const Colors = useColors()
+  const Colors  = useColors()
   const premium = usePremium()
   const { themeKey, setTheme } = useThemeStore()
   const { data: settings, update: updateSettings } = useSettings()
   const { invalidateData } = useRecordsStore()
 
-  const [bioAvailable,   setBioAvailable]   = useState(false)
-  const [bioEnabled,     setBioEnabledState] = useState(false)
-  const [showCurrency,   setShowCurrency]   = useState(false)
-  const [exportingCSV,   setExportingCSV]   = useState(false)
-  const [exportingJSON,  setExportingJSON]  = useState(false)
+  const [bioAvailable,  setBioAvailable]  = useState(false)
+  const [bioEnabled,    setBioEnabled]    = useState(false)
+  const [showCurrency,  setShowCurrency]  = useState(false)
+  const [exportingCSV,  setExportingCSV]  = useState(false)
+  const [exportingJSON, setExportingJSON] = useState(false)
 
   useEffect(() => {
     Promise.all([isBiometricAvailable(), isBiometricEnabled()])
-      .then(([avail, enabled]) => {
-        setBioAvailable(avail)
-        setBioEnabledState(enabled)
-      })
+      .then(([avail, enabled]) => { setBioAvailable(avail); setBioEnabled(enabled) })
   }, [])
 
-  // ─── Currency ──────────────────────────────────────────────────────────────
   const handleCurrencySelect = useCallback(async (code: string, symbol: string) => {
     setShowCurrency(false)
     await updateSettings({ currency: code, currencySymbol: symbol })
@@ -185,345 +163,245 @@ export default function SettingsScreen() {
     toastService.success(`Currency changed to ${code}`)
   }, [updateSettings, invalidateData])
 
-  // ─── Biometric ────────────────────────────────────────────────────────────
   const handleBioToggle = useCallback(async (enabled: boolean) => {
     await setBiometricEnabled(enabled)
-    setBioEnabledState(enabled)
+    setBioEnabled(enabled)
     toastService.success(enabled ? 'Biometric unlock enabled' : 'Biometric unlock disabled')
   }, [])
 
-  // ─── Export ───────────────────────────────────────────────────────────────
   const handleExportCSV = useCallback(async () => {
     setExportingCSV(true)
-    try {
-      await exportCSV()
-      toastService.success('Transactions exported as CSV')
-    } catch (err: any) {
-      toastService.error('Export failed', err?.message)
-    } finally {
-      setExportingCSV(false)
-    }
+    try { await exportCSV(); toastService.success('Transactions exported as CSV') }
+    catch (err: any) { toastService.error('Export failed', err?.message) }
+    finally { setExportingCSV(false) }
   }, [])
 
   const handleExportJSON = useCallback(async () => {
     setExportingJSON(true)
-    try {
-      await exportJSON()
-      toastService.success('Full backup created as JSON')
-    } catch (err: any) {
-      toastService.error('Backup failed', err?.message)
-    } finally {
-      setExportingJSON(false)
-    }
+    try { await exportJSON(); toastService.success('Full backup created as JSON') }
+    catch (err: any) { toastService.error('Backup failed', err?.message) }
+    finally { setExportingJSON(false) }
   }, [])
 
-  // ─── Change PIN ────────────────────────────────────────────────────────────
-  const handleChangePIN = useCallback(() => {
-    router.push('/change-pin' as any)
-  }, [])
+  const handleChangePIN = useCallback(() => router.push('/change-pin' as any), [])
 
-  // ─── Dev: reset premium (remove before production) ─────────────────────────
   const handleResetPremium = useCallback(async () => {
-    const ok = await dialogueService.confirm({
-      title:        'Reset premium?',
-      message:      'This will remove your premium entitlement so you can test the paywall again.',
-      icon:         '🧪',
-      confirmLabel: 'Reset',
-      destructive:  true,
-    })
+    const ok = await dialogueService.confirm({ title: 'Reset premium?', message: 'Remove premium entitlement for testing.', icon: '🧪', confirmLabel: 'Reset', destructive: true })
     if (!ok) return
     await clearEntitlement()
     usePremiumStore.getState().setEntitlement(false, null)
     toastService.info('Premium reset', 'App is now in free mode')
   }, [])
 
-  // ─── Reset PIN ─────────────────────────────────────────────────────────────
   const handleResetApp = useCallback(async () => {
-    const ok = await dialogueService.confirm({
-      title:        'Reset app?',
-      message:      'This will delete your PIN and all settings. You will go through setup again.',
-      icon:         '⚠️',
-      confirmLabel: 'Reset',
-      destructive:  true,
-    })
+    const ok = await dialogueService.confirm({ title: 'Reset app?', message: 'This will delete your PIN and all settings. You will go through setup again.', icon: '⚠️', confirmLabel: 'Reset', destructive: true })
     if (!ok) return
-    // Clear all secure storage
-    await deletePin()
-    await clearSetup()
+    await deletePin(); await clearSetup()
     toastService.success('App reset — restarting setup')
-    // Navigate to onboarding
-    setTimeout(() => {
-      router.replace('/(onboarding)/setup-pin' as any)
-    }, 800)
+    setTimeout(() => router.replace('/(onboarding)/setup-pin' as any), 800)
   }, [])
 
   const currentCurrency = CURRENCIES.find(c => c.code === settings?.currency)
 
   return (
     <StyledPage flex={1} backgroundColor={Colors.bg}>
-      <Stack flex={1}>
-        <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
-          <Text variant="header" color={Colors.textPrimary} letterSpacing={-0.5}>
-            Settings
-          </Text>
-        </Stack>
+      <View style={{ flex: 1 }}>
 
-      <StyledScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+        {/* Header */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
+          <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Settings</StyledText>
+        </View>
 
-        {/* ── Premium ─────────────────────────────────────────────────── */}
-        {!premium.isPremium ? (
-          <StyledPressable
-            marginHorizontal={16} marginBottom={8}
-            borderRadius={20} overflow="hidden"
-            onPress={() => router.push('/premium' as any)}
-          >
-            <Stack
-              paddingVertical={18} paddingHorizontal={20}
-              borderRadius={20}
-              backgroundColor="#6366F1"
-            >
-              <Stack horizontal alignItems="center" justifyContent="space-between">
-                <Stack gap={4}>
-                  <Stack horizontal alignItems="center" gap={8}>
-                    <StyledText fontSize={20}>⚡</StyledText>
-                    <Text variant="subtitle" color="#fff">Upgrade to Premium</Text>
-                  </Stack>
-                  <Text variant="bodySmall" color="rgba(255,255,255,0.8)">
-                    Unlimited everything · All themes · Export
-                  </Text>
-                </Stack>
-                <Stack
-                  paddingVertical={8} paddingHorizontal={16}
-                  borderRadius={20} backgroundColor="rgba(255,255,255,0.2)"
-                >
-                  <Text variant="label" color="#fff">View →</Text>
-                </Stack>
-              </Stack>
-            </Stack>
-          </StyledPressable>
-        ) : (
-          <Stack
-            marginHorizontal={16} marginBottom={8}
-            paddingVertical={14} paddingHorizontal={20}
-            borderRadius={20} backgroundColor="#6366F115"
-            borderWidth={1} borderColor="#6366F130"
-            horizontal alignItems="center" gap={12}
-          >
-            <StyledText fontSize={22}>⚡</StyledText>
-            <Stack flex={1}>
-              <Text variant="label" color="#6366F1">Claro Premium</Text>
-              <Text variant="bodySmall" color={Colors.textMuted}>
-                {premium.plan === 'lifetime' ? 'Lifetime access' : `${premium.plan} subscription`}
-              </Text>
-            </Stack>
-            <StyledText fontSize={20}>✓</StyledText>
-          </Stack>
-        )}
+        <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
 
-        {/* ── Appearance ──────────────────────────────────────────────── */}
-        <SectionHeader label="Appearance" />
-        <Stack marginHorizontal={16} flexDirection="row" gap={10} flexWrap="wrap">
-          {(Object.keys(THEME_META) as ThemeKey[]).map((key) => {
-            const meta    = THEME_META[key]
-            const theme   = THEMES[key]
-            const active  = themeKey === key
-            return (
-              <StyledPressable
-                key={key}
-                onPress={() => setTheme(key)}
-                alignItems="center" gap={8}
-                paddingVertical={14} paddingHorizontal={12}
-                borderRadius={16}
-                flex={1}
-                borderWidth={2}
-                borderColor={active ? theme.primary : Colors.border}
-                backgroundColor={active ? theme.accent : Colors.bgCard}
-              >
-                {/* Color swatches */}
-                <Stack horizontal gap={4}>
-                  {meta.preview.map((c, i) => (
-                    <Stack key={i} width={18} height={18} borderRadius={9} backgroundColor={c} />
-                  ))}
-                </Stack>
-                <Text variant="overline"
-                  color={active ? theme.primary : Colors.textMuted}>
-                  {meta.label}
-                </Text>
-                {active && (
-                  <Stack
-                    width={18} height={18} borderRadius={9}
-                    backgroundColor={theme.primary}
-                    alignItems="center" justifyContent="center"
-                  >
-                    <CheckIcon size={10} color={Colors.white} strokeWidth={3} />
-                  </Stack>
-                )}
-              </StyledPressable>
-            )
-          })}
-        </Stack>
+          {/* ── Premium banner ────────────────────────────────────────── */}
+          <View style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 4 }}>
+            {!premium.isPremium ? (
+              <TouchableOpacity onPress={() => router.push('/premium' as any)} activeOpacity={0.85}>
+                <View style={{
+                  borderRadius: 20, padding: 20,
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary, shadowOpacity: 0.35, shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 6 }, elevation: 8,
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ gap: 4 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <StyledText fontSize={20}>⚡</StyledText>
+                        <StyledText fontSize={17} fontWeight="800" color="#fff">Upgrade to Premium</StyledText>
+                      </View>
+                      <StyledText fontSize={12} color="rgba(255,255,255,0.75)">
+                        Unlimited everything · All themes · Export
+                      </StyledText>
+                    </View>
+                    <View style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                      <StyledText fontSize={13} fontWeight="700" color="#fff">View →</StyledText>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <View style={{ borderRadius: 16, padding: 16, backgroundColor: Colors.accent, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <StyledText fontSize={22}>⚡</StyledText>
+                <View style={{ flex: 1 }}>
+                  <StyledText fontSize={14} fontWeight="700" color={Colors.primary}>Claro Premium</StyledText>
+                  <StyledText fontSize={12} color={Colors.textMuted}>{premium.plan === 'lifetime' ? 'Lifetime access' : `${premium.plan} subscription`}</StyledText>
+                </View>
+                <StyledText fontSize={18} color={Colors.primary}>✓</StyledText>
+              </View>
+            )}
+          </View>
 
-        {/* ── General ─────────────────────────────────────────────── */}
-        <SectionHeader label="General" />
-        <StyledCard
-          marginHorizontal={16} borderRadius={16}
-          backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}
-          overflow="hidden"
-        >
-          <SettingsRow
-            icon={<TrendUpIcon size={20} color={Colors.primary} strokeWidth={2} />}
-            label="Currency"
-            value={currentCurrency ? `${currentCurrency.symbol} ${currentCurrency.code}` : '—'}
-            onPress={() => setShowCurrency(true)}
-          />
-        </StyledCard>
+          {/* ── Appearance ────────────────────────────────────────────── */}
+          <SectionHeader label="Appearance" />
+          <View style={{ marginHorizontal: 16, flexDirection: 'row', gap: 10 }}>
+            {(Object.keys(THEME_META) as ThemeKey[]).map((key) => {
+              const meta   = THEME_META[key]
+              const theme  = THEMES[key]
+              const active = themeKey === key
+              return (
+                <TouchableOpacity key={key} onPress={() => setTheme(key)} activeOpacity={0.75}
+                  style={{ flex: 1, alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 8, borderRadius: 16,
+                    borderWidth: 2, borderColor: active ? theme.primary : Colors.border,
+                    backgroundColor: active ? theme.accent : Colors.bgCard }}>
+                  {/* Swatches */}
+                  <View style={{ flexDirection: 'row', gap: 3 }}>
+                    {meta.preview.map((c, i) => (
+                      <View key={i} style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: c }} />
+                    ))}
+                  </View>
+                  <StyledText fontSize={10} fontWeight="700" letterSpacing={0.8}
+                    color={active ? theme.primary : Colors.textMuted}>
+                    {meta.label.toUpperCase()}
+                  </StyledText>
+                  {active && (
+                    <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' }}>
+                      <CheckIcon size={9} color={Colors.white} strokeWidth={3} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )
+            })}
+          </View>
 
-        {/* ── Manage ──────────────────────────────────────────────── */}
-        <SectionHeader label="Manage" />
-        <StyledCard
-          marginHorizontal={16} borderRadius={16}
-          backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}
-          overflow="hidden"
-        >
-          <SettingsRow
-            icon={<AccountsTabIcon size={20} color={Colors.primary} strokeWidth={2} />}
-            label="Accounts"
-            onPress={() => router.push('/(tabs)/accounts' as any)}
-          />
-          <StyledDivider borderBottomColor={Colors.border} marginLeft={62} />
-          <SettingsRow
-            icon={<CategoriesTabIcon size={20} color={Colors.primary} strokeWidth={2} />}
-            label="Categories"
-            onPress={() => router.push('/(tabs)/categories' as any)}
-          />
-        </StyledCard>
+          {/* ── General ───────────────────────────────────────────────── */}
+          <SectionHeader label="General" />
+          <SettingsGroup>
+            <SettingsRow
+              icon={<IconPill bg={Colors.accent} icon={<TrendUpIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Currency"
+              value={currentCurrency ? `${currentCurrency.symbol} ${currentCurrency.code}` : '—'}
+              onPress={() => setShowCurrency(true)}
+            />
+          </SettingsGroup>
 
-        {/* ── Security ────────────────────────────────────────────── */}
-        <SectionHeader label="Security" />
-        <StyledCard
-          marginHorizontal={16} borderRadius={16}
-          backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}
-          overflow="hidden"
-        >
-          <SettingsRow
-            icon={<LockIcon size={20} color={Colors.primary} strokeWidth={2} />}
-            label="Change PIN"
-            onPress={handleChangePIN}
-          />
-          {bioAvailable && (
-            <>
-              <StyledDivider borderBottomColor={Colors.border} marginLeft={62} />
-              <SwitchRow
-                icon={<FingerprintIcon size={20} color={Colors.primary} strokeWidth={2} />}
-                label="Face ID / Touch ID"
-                subtitle="Unlock Claro with biometrics"
-                value={bioEnabled}
-                onChange={handleBioToggle}
-              />
-            </>
-          )}
-        </StyledCard>
+          {/* ── Manage ────────────────────────────────────────────────── */}
+          <SectionHeader label="Manage" />
+          <SettingsGroup>
+            <SettingsRow
+              icon={<IconPill bg={Colors.accent} icon={<AccountsTabIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Accounts"
+              onPress={() => router.push('/(tabs)/accounts' as any)}
+            />
+            <RowDivider />
+            <SettingsRow
+              icon={<IconPill bg={Colors.accent} icon={<CategoriesTabIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Categories"
+              onPress={() => router.push('/(tabs)/categories' as any)}
+            />
+          </SettingsGroup>
 
-        {/* ── About ───────────────────────────────────────────────── */}
-        <SectionHeader label="About" />
-        <StyledCard
-          marginHorizontal={16} borderRadius={16}
-          backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}
-          overflow="hidden"
-        >
-          <Stack flexDirection="row" alignItems="center" gap={14} paddingHorizontal={20} paddingVertical={14}>
-            <Stack width={28} height={28} alignItems="center" justifyContent="center">
-              <SettingsTabIcon size={20} color={Colors.textMuted} strokeWidth={1.8} />
-            </Stack>
-            <StyledText flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Version</StyledText>
-            <StyledText fontSize={14} color={Colors.textMuted}>1.0.0</StyledText>
-          </Stack>
-          <StyledDivider borderBottomColor={Colors.border} marginLeft={62} />
-          <Stack flexDirection="row" alignItems="center" gap={14} paddingHorizontal={20} paddingVertical={14}>
-            <Stack width={28} height={28} alignItems="center" justifyContent="center">
-              <BellIcon size={20} color={Colors.textMuted} strokeWidth={1.8} />
-            </Stack>
-            <StyledText flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Built with</StyledText>
-            <StyledText fontSize={14} color={Colors.textMuted}>fluent-styles</StyledText>
-          </Stack>
-        </StyledCard>
+          {/* ── Security ──────────────────────────────────────────────── */}
+          <SectionHeader label="Security" />
+          <SettingsGroup>
+            <SettingsRow
+              icon={<IconPill bg={Colors.accent} icon={<LockIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+              label="Change PIN"
+              onPress={handleChangePIN}
+            />
+            {bioAvailable && (
+              <>
+                <RowDivider />
+                <SwitchRow
+                  icon={<IconPill bg={Colors.accent} icon={<FingerprintIcon size={18} color={Colors.primary} strokeWidth={2} />} />}
+                  label="Face ID / Touch ID"
+                  subtitle="Unlock with biometrics"
+                  value={bioEnabled}
+                  onChange={handleBioToggle}
+                />
+              </>
+            )}
+          </SettingsGroup>
 
-        {/* ── Data ───────────────────────────────────────────────────── */}
-        <SectionHeader label="Data" />
-        <StyledCard
-          marginHorizontal={16} borderRadius={16}
-          backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}
-          overflow="hidden"
-        >
-          <SettingsRow
-            icon={<CalendarIcon size={20} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />}
-            label="Export transactions"
-            subtitle={exportingCSV ? 'Exporting…' : undefined}
-            value={premium.canExport() ? 'CSV' : '🔒 Premium'}
-            onPress={() => premium.canExport() && !exportingCSV ? handleExportCSV() : premium.canExport() ? null : router.push('/premium' as any)}
-            loading={exportingCSV}
-          />
-          <StyledDivider borderBottomColor={Colors.border} marginLeft={62} />
-          <SettingsRow
-            icon={<CopyIcon size={20} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />}
-            label="Backup all data"
-            subtitle={exportingJSON ? 'Creating backup…' : undefined}
-            value={premium.canExport() ? 'JSON' : '🔒 Premium'}
-            onPress={() => premium.canExport() && !exportingJSON ? handleExportJSON() : premium.canExport() ? null : router.push('/premium' as any)}
-            loading={exportingJSON}
-          />
-        </StyledCard>
+          {/* ── Data ──────────────────────────────────────────────────── */}
+          <SectionHeader label="Data" />
+          <SettingsGroup>
+            <SettingsRow
+              icon={<IconPill bg={Colors.accent} icon={<CalendarIcon size={18} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />} />}
+              label="Export transactions"
+              subtitle={exportingCSV ? 'Exporting…' : undefined}
+              value={premium.canExport() ? 'CSV' : '🔒 Premium'}
+              onPress={() => premium.canExport() && !exportingCSV ? handleExportCSV() : !premium.canExport() ? router.push('/premium' as any) : undefined}
+              loading={exportingCSV}
+            />
+            <RowDivider />
+            <SettingsRow
+              icon={<IconPill bg={Colors.accent} icon={<CopyIcon size={18} color={premium.canExport() ? Colors.primary : Colors.textMuted} strokeWidth={2} />} />}
+              label="Backup all data"
+              subtitle={exportingJSON ? 'Creating backup…' : undefined}
+              value={premium.canExport() ? 'JSON' : '🔒 Premium'}
+              onPress={() => premium.canExport() && !exportingJSON ? handleExportJSON() : !premium.canExport() ? router.push('/premium' as any) : undefined}
+              loading={exportingJSON}
+            />
+          </SettingsGroup>
 
-        {/* ── Danger zone ─────────────────────────────────────────── */}
-        <SectionHeader label="Danger Zone" />
-        <StyledCard
-          marginHorizontal={16} borderRadius={16}
-          backgroundColor={Colors.bgCard}
-          borderWidth={1} borderColor={Colors.border}
-          overflow="hidden"
-        >
-          <SettingsRow
-            icon={<DeleteIcon size={20} color={Colors.expense} strokeWidth={2} />}
-            label="Reset app"
-            onPress={handleResetApp}
-            danger
-          />
-          {__DEV__ && (
-            <>
-              <StyledDivider borderBottomColor={Colors.border} />
-              <SettingsRow
-                icon={<StyledText fontSize={16}>🧪</StyledText>}
-                label="Reset premium (dev)"
-                onPress={handleResetPremium}
-                danger
-              />
-            </>
-          )}
-        </StyledCard>
+          {/* ── About ─────────────────────────────────────────────────── */}
+          <SectionHeader label="About" />
+          <SettingsGroup>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: Colors.bgCard }}>
+              <IconPill bg={Colors.bgMuted} icon={<SettingsTabIcon size={18} color={Colors.textMuted} strokeWidth={1.8} />} />
+              <StyledText flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Version</StyledText>
+              <StyledText fontSize={13} color={Colors.textMuted}>1.0.0</StyledText>
+            </View>
+            <RowDivider />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 13, backgroundColor: Colors.bgCard }}>
+              <IconPill bg={Colors.bgMuted} icon={<BellIcon size={18} color={Colors.textMuted} strokeWidth={1.8} />} />
+              <StyledText flex={1} fontSize={15} fontWeight="600" color={Colors.textPrimary}>Built with</StyledText>
+              <StyledText fontSize={13} color={Colors.textMuted}>fluent-styles</StyledText>
+            </View>
+          </SettingsGroup>
 
-      </StyledScrollView>
+          {/* ── Danger zone ───────────────────────────────────────────── */}
+          <SectionHeader label="Danger Zone" />
+          <SettingsGroup>
+            <SettingsRow
+              icon={<IconPill bg={Colors.expenseLight} icon={<DeleteIcon size={18} color={Colors.expense} strokeWidth={2} />} />}
+              label="Reset app"
+              onPress={handleResetApp}
+              danger
+            />
+            {__DEV__ && (
+              <>
+                <RowDivider />
+                <SettingsRow
+                  icon={<IconPill bg={Colors.bgMuted} icon={<StyledText fontSize={16}>🧪</StyledText>} />}
+                  label="Reset premium (dev)"
+                  onPress={handleResetPremium}
+                  danger
+                />
+              </>
+            )}
+          </SettingsGroup>
 
-      {/* ── Currency picker — Popup from fluent-styles ─────────────── */}
-      <Popup
-        visible={showCurrency}
-        onClose={() => setShowCurrency(false)}
-        title="Select Currency"
-        showClose
-        position="bottom"
-        round
-        roundRadius={20}
-      >
-        <CurrencyPicker
-          current={settings?.currency ?? 'USD'}
-          onSelect={handleCurrencySelect}
-        />
-      </Popup>
-    </Stack>
-  </StyledPage>
+        </ScrollView>
+
+        {/* Currency picker popup */}
+        <Popup visible={showCurrency} onClose={() => setShowCurrency(false)}
+          title="Select Currency" showClose position="bottom" round roundRadius={20}>
+          <CurrencyPicker current={settings?.currency ?? 'USD'} onSelect={handleCurrencySelect} />
+        </Popup>
+
+      </View>
+    </StyledPage>
   )
 }

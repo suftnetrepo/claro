@@ -23,7 +23,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   AddIcon,
-  LockOutIcon,
+  BellIcon,
 } from "../../icons";
 import { useColors } from "../../constants";
 import { useTransactions, useAccounts, useSettings } from "../../hooks";
@@ -31,7 +31,6 @@ import { useRecordsStore } from "../../stores";
 import { formatCurrency, formatShortDate, formatTime } from "../../utils";
 import { SwipeableRow } from "../../components";
 import type { TransactionWithRefs } from "../../hooks";
-import { ClaroLogo } from "@/components/ClaroLogo";
 
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 function Sparkline({
@@ -88,14 +87,10 @@ function HomeHeader({ symbol }: { symbol: string }) {
         justifyContent="space-between"
         marginBottom={20}
       >
-        <Stack
-        flex={1}
-          gap={8}
-          alignItems="center"
-          horizontal
-          justifyContent="flex-start"
-        >
-          <ClaroLogo size={36} variant="icon" />
+        <Stack gap={2}>
+          <Text variant="subLabel" color={Colors.textMuted} letterSpacing={0.2}>
+            Welcome back
+          </Text>
           <Text
             fontSize={32}
             fontWeight="800"
@@ -120,7 +115,7 @@ function HomeHeader({ symbol }: { symbol: string }) {
             elevation: 3,
           }}
         >
-          <LockOutIcon size={20} color={Colors.textSecondary} />
+          <BellIcon size={20} color={Colors.textSecondary} />
         </StyledPressable>
       </Stack>
 

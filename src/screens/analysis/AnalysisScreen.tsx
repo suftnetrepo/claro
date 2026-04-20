@@ -970,7 +970,7 @@ function TrendsTab({
                 <StyledText
                   fontSize={11}
                   fontWeight={isActive ? "700" : "500"}
-                  color={isActive ? Colors.textPrimary : INC_LABEL}
+                  color={isActive ? Colors.textOnDark : INC_LABEL}
                 >
                   {label}
                 </StyledText>
@@ -1062,7 +1062,7 @@ function TrendsTab({
                 <StyledText
                   fontSize={12}
                   fontWeight={isActive ? "700" : "500"}
-                  color={isActive ? Colors.textPrimary : EXP_LABEL}
+                  color={isActive ? Colors.textOnDark : EXP_LABEL}
                 >
                   {r}
                 </StyledText>

@@ -7,68 +7,26 @@ import {
   StyledSkeleton,
   StyledPage,
   StyledCard,
+  StyleShape,
 } from "fluent-styles";
 import { dialogueService, toastService } from "fluent-styles";
 import { router, useFocusEffect } from "expo-router";
 import { format } from "date-fns";
-import Svg, {
-  Path,
-  Defs,
-  LinearGradient as SvgGrad,
-  Stop,
-} from "react-native-svg";
 import { Text } from "../../components";
 import { IconCircle } from "../../icons/map";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   AddIcon,
-  BellIcon,
+  LogoutIcon,
+  Sparkline,
 } from "../../icons";
 import { useColors } from "../../constants";
 import { useTransactions, useAccounts, useSettings } from "../../hooks";
 import { useRecordsStore } from "../../stores";
 import { formatCurrency, formatShortDate, formatTime } from "../../utils";
-import { SwipeableRow } from "../../components";
+import { SwipeableRow, ClaroLogo } from "../../components";
 import type { TransactionWithRefs } from "../../hooks";
-
-// ─── Sparkline ────────────────────────────────────────────────────────────────
-function Sparkline({
-  color,
-  bgColor,
-  up = true,
-}: {
-  color: string;
-  bgColor: string;
-  up?: boolean;
-}) {
-  const W = 40,
-    H = 38;
-  const linePath = up
-    ? `M 0 ${H - 6} C 6 ${H - 8} 10 ${H - 18} 16 ${H - 16} C 22 ${H - 14} 26 ${H - 28} 40 6`
-    : `M 0 8 C 6 6 11 ${H - 22} 18 ${H - 18} C 25 ${H - 14} 30 ${H - 10} 40 ${H - 6}`;
-  const areaPath = linePath + ` L 40 ${H} L 0 ${H} Z`;
-  const gradId = `sg_${color.replace(/[^a-z0-9]/gi, "")}`;
-  return (
-    <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      <Defs>
-        <SvgGrad id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={color} stopOpacity="0.22" />
-          <Stop offset="1" stopColor={bgColor} stopOpacity="0" />
-        </SvgGrad>
-      </Defs>
-      <Path d={areaPath} fill={`url(#${gradId})`} />
-      <Path
-        d={linePath}
-        stroke={color}
-        strokeWidth="1.8"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 function HomeHeader({ symbol }: { symbol: string }) {
@@ -87,10 +45,14 @@ function HomeHeader({ symbol }: { symbol: string }) {
         justifyContent="space-between"
         marginBottom={20}
       >
-        <Stack gap={2}>
-          <Text variant="subLabel" color={Colors.textMuted} letterSpacing={0.2}>
-            Welcome back
-          </Text>
+        <Stack
+          flex={1}
+          gap={8}
+          alignItems="center"
+          horizontal
+          justifyContent="flex-start"
+        >
+          <ClaroLogo size={36} variant="icon" />
           <Text
             fontSize={32}
             fontWeight="800"
@@ -100,22 +62,10 @@ function HomeHeader({ symbol }: { symbol: string }) {
             Claro
           </Text>
         </Stack>
-        <StyledPressable
-          width={42}
-          height={42}
-          borderRadius={21}
-          backgroundColor={Colors.bgCard}
-          alignItems="center"
-          justifyContent="center"
-          style={{
-            shadowColor: "#000",
-            shadowOpacity: 0.08,
-            shadowRadius: 6,
-            shadowOffset: { width: 0, height: 2 },
-            elevation: 3,
-          }}
-        >
-          <BellIcon size={20} color={Colors.textSecondary} />
+        <StyledPressable onPress={() => router.replace("/(lock)" as any)}>
+          <StyleShape size={48} cycle backgroundColor={Colors.bgCard}>
+            <LogoutIcon size={20} color={Colors.textSecondary} />
+          </StyleShape>
         </StyledPressable>
       </Stack>
 

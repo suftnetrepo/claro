@@ -10,6 +10,7 @@ import {
   Popup,
   StyledPage,
   StyledHeader,
+  TabBar,
 } from "fluent-styles";
 import { toastService, loaderService } from "fluent-styles";
 import { format } from "date-fns";
@@ -165,7 +166,7 @@ export default function AddTransactionScreen() {
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           {/* ── Type selector ───────────────────────────────────────── */}
-          <Stack paddingHorizontal={20} paddingTop={20} paddingBottom={8}>
+          <Stack vertical paddingHorizontal={20} paddingTop={20} paddingBottom={8}>
             {/* Custom 3-button pill row — clear active color per type */}
             <Stack
               horizontal
@@ -175,95 +176,43 @@ export default function AddTransactionScreen() {
               padding={4}
               gap={4}
             >
-              {TYPE_TABS.map((t) => {
-                const active = txType === t.value;
-                const color = TYPE_COLORS[t.value];
-                return (
-                  <StyledPressable
-                    key={t.value}
-                    flex={1}
-                    paddingVertical={10}
-                    borderRadius={10}
-                    alignItems="center"
-                    justifyContent="center"
-                    backgroundColor={active ? color : "transparent"}
-                    onPress={() => handleTypeChange(t.value)}
-                    style={
-                      active
-                        ? {
-                            shadowColor: color,
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 4,
-                            elevation: 3,
-                          }
-                        : undefined
-                    }
-                  >
-                    <StyledText
-                      fontSize={14}
-                      fontWeight="700"
-                      color={active ? Colors.white : Colors.textSecondary}
-                    >
-                      {t.label}
-                    </StyledText>
-                  </StyledPressable>
-                );
-              })}
-            </Stack>
-          </Stack>
-
-          {/* ── Amount input ─────────────────────────────────────────── */}
-          <Stack paddingTop={8}>
-            <StyledText
-              fontSize={11}
-              color={Colors.textMuted}
-              fontWeight="700"
-              letterSpacing={1}
-              textAlign="center"
-              paddingTop={8}
-            >
-              INPUT AMOUNT
-            </StyledText>
-            <Calculator value={amount} onChange={setAmount} symbol={symbol} />
-          </Stack>
-
-          {/* ── Account pill ─────────────────────────────────────────── */}
-          <Stack paddingHorizontal={20} marginBottom={14}>
-            <StyledPressable
-              flexDirection="row"
-              alignItems="center"
-              justifyContent="center"
-              gap={8}
-              paddingVertical={14}
-              paddingHorizontal={20}
-              borderRadius={30}
-              borderWidth={1}
-              borderColor={Colors.border}
-              backgroundColor={Colors.bgCard}
-              onPress={() => setShowAccount(true)}
-            >
-              {selectedAccount ? (
-                <IconCircle
-                  iconKey={selectedAccount.icon}
-                  bg={selectedAccount.color}
-                  size={24}
-                  type="account"
-                />
-              ) : null}
-              <StyledText
-                fontSize={15}
-                fontWeight="600"
-                color={Colors.textPrimary}
+              <Stack
+                flex={1}
+                paddingTop={8}
+                paddingHorizontal={20}
+                paddingBottom={12}
               >
-                {selectedAccount?.name ?? "Select account"}
-              </StyledText>
-              <ChevronDownIcon size={16} color={Colors.textMuted} />
-            </StyledPressable>
-          </Stack>
+                <TabBar
+                  options={TYPE_TABS}
+                  value={txType}
+                  onChange={handleTypeChange}
+                  indicator="pill"
+                  colors={{
+                    background: Colors.bgCard + "66",
+                    activeText: accentColor,
+                    indicator: Colors.bgCard,
+                    text: Colors.textMuted,
+                  }}
+                />
+              </Stack>
+            </Stack>
 
-          {/* ── Transfer destination pill ─────────────────────────────── */}
-          {txType === "transfer" && (
+            {/* ── Amount input ─────────────────────────────────────────── */}
+            <Stack paddingTop={8}>
+              <StyledText
+                fontSize={11}
+                color={Colors.textMuted}
+                fontWeight="700"
+                letterSpacing={1}
+                textAlign="center"
+                paddingTop={8}
+              >
+                INPUT AMOUNT
+              </StyledText>
+              <Calculator value={amount} onChange={setAmount} symbol={symbol} />
+            </Stack>
+
+            {/* ── Account pill ─────────────────────────────────────────── */}
             <Stack paddingHorizontal={20} marginBottom={14}>
               <StyledPressable
                 flexDirection="row"
@@ -276,12 +225,12 @@ export default function AddTransactionScreen() {
                 borderWidth={1}
                 borderColor={Colors.border}
                 backgroundColor={Colors.bgCard}
-                onPress={() => setShowToAccount(true)}
+                onPress={() => setShowAccount(true)}
               >
-                {selectedToAccount ? (
+                {selectedAccount ? (
                   <IconCircle
-                    iconKey={selectedToAccount.icon}
-                    bg={selectedToAccount.color}
+                    iconKey={selectedAccount.icon}
+                    bg={selectedAccount.color}
                     size={24}
                     type="account"
                   />
@@ -291,151 +240,187 @@ export default function AddTransactionScreen() {
                   fontWeight="600"
                   color={Colors.textPrimary}
                 >
-                  {selectedToAccount?.name ?? "To account"}
+                  {selectedAccount?.name ?? "Select account"}
                 </StyledText>
                 <ChevronDownIcon size={16} color={Colors.textMuted} />
               </StyledPressable>
             </Stack>
-          )}
 
-          {/* ── Category + Date row ───────────────────────────────────── */}
-          {txType !== "transfer" && (
-            <Stack horizontal paddingHorizontal={20} gap={12} marginBottom={14}>
-              <StyledPressable
-                flex={1}
-                flexDirection="row"
-                alignItems="center"
-                gap={8}
-                paddingVertical={12}
-                paddingHorizontal={14}
-                borderRadius={16}
-                borderWidth={1}
-                borderColor={Colors.border}
-                backgroundColor={Colors.bgCard}
-                onPress={() => setShowCategory(true)}
-              >
-                {selectedCategory ? (
-                  <IconCircle
-                    iconKey={selectedCategory.icon}
-                    bg={selectedCategory.color}
-                    size={22}
-                  />
-                ) : (
-                  <StyledText fontSize={16}>🏷️</StyledText>
-                )}
-                <StyledText
-                  flex={1}
-                  fontSize={13}
-                  fontWeight="600"
-                  color={Colors.textPrimary}
-                  numberOfLines={1}
+            {/* ── Transfer destination pill ─────────────────────────────── */}
+            {txType === "transfer" && (
+              <Stack paddingHorizontal={20} marginBottom={14}>
+                <StyledPressable
+                  flexDirection="row"
+                  alignItems="center"
+                  justifyContent="center"
+                  gap={8}
+                  paddingVertical={14}
+                  paddingHorizontal={20}
+                  borderRadius={30}
+                  borderWidth={1}
+                  borderColor={Colors.border}
+                  backgroundColor={Colors.bgCard}
+                  onPress={() => setShowToAccount(true)}
                 >
-                  {selectedCategory?.name ?? "Category"}
-                </StyledText>
-                <ChevronDownIcon size={14} color={Colors.textMuted} />
-              </StyledPressable>
+                  {selectedToAccount ? (
+                    <IconCircle
+                      iconKey={selectedToAccount.icon}
+                      bg={selectedToAccount.color}
+                      size={24}
+                      type="account"
+                    />
+                  ) : null}
+                  <StyledText
+                    fontSize={15}
+                    fontWeight="600"
+                    color={Colors.textPrimary}
+                  >
+                    {selectedToAccount?.name ?? "To account"}
+                  </StyledText>
+                  <ChevronDownIcon size={16} color={Colors.textMuted} />
+                </StyledPressable>
+              </Stack>
+            )}
 
-              <StyledPressable
-                flex={1}
-                flexDirection="row"
-                alignItems="center"
-                gap={8}
-                paddingVertical={12}
-                paddingHorizontal={14}
-                borderRadius={16}
-                borderWidth={1}
-                borderColor={Colors.border}
-                backgroundColor={Colors.bgCard}
-                onPress={() => setShowDate(true)}
-              >
-                <CalendarIcon size={16} color={Colors.textMuted} />
-                <StyledText
+            {/* ── Category + Date row ───────────────────────────────────── */}
+            {txType !== "transfer" && (
+              <Stack horizontal paddingHorizontal={20} gap={12} marginBottom={14}>
+                <StyledPressable
                   flex={1}
-                  fontSize={13}
-                  fontWeight="600"
-                  color={Colors.textPrimary}
-                  numberOfLines={1}
+                  flexDirection="row"
+                  alignItems="center"
+                  gap={8}
+                  paddingVertical={12}
+                  paddingHorizontal={14}
+                  borderRadius={16}
+                  borderWidth={1}
+                  borderColor={Colors.border}
+                  backgroundColor={Colors.bgCard}
+                  onPress={() => setShowCategory(true)}
                 >
-                  {format(date, "MMM d, yyyy")}
-                </StyledText>
-                <ChevronDownIcon size={14} color={Colors.textMuted} />
-              </StyledPressable>
+                  {selectedCategory ? (
+                    <IconCircle
+                      iconKey={selectedCategory.icon}
+                      bg={selectedCategory.color}
+                      size={22}
+                    />
+                  ) : (
+                    <StyledText fontSize={16}>🏷️</StyledText>
+                  )}
+                  <StyledText
+                    flex={1}
+                    fontSize={13}
+                    fontWeight="600"
+                    color={Colors.textPrimary}
+                    numberOfLines={1}
+                  >
+                    {selectedCategory?.name ?? "Category"}
+                  </StyledText>
+                  <ChevronDownIcon size={14} color={Colors.textMuted} />
+                </StyledPressable>
+
+                <StyledPressable
+                  flex={1}
+                  flexDirection="row"
+                  alignItems="center"
+                  gap={8}
+                  paddingVertical={12}
+                  paddingHorizontal={14}
+                  borderRadius={16}
+                  borderWidth={1}
+                  borderColor={Colors.border}
+                  backgroundColor={Colors.bgCard}
+                  onPress={() => setShowDate(true)}
+                >
+                  <CalendarIcon size={16} color={Colors.textMuted} />
+                  <StyledText
+                    flex={1}
+                    fontSize={13}
+                    fontWeight="600"
+                    color={Colors.textPrimary}
+                    numberOfLines={1}
+                  >
+                    {format(date, "MMM d, yyyy")}
+                  </StyledText>
+                  <ChevronDownIcon size={14} color={Colors.textMuted} />
+                </StyledPressable>
+              </Stack>
+            )}
+
+            {/* Transfer date pill */}
+            {txType === "transfer" && (
+              <Stack paddingHorizontal={20} marginBottom={14}>
+                <StyledPressable
+                  flexDirection="row"
+                  alignItems="center"
+                  gap={8}
+                  paddingVertical={12}
+                  paddingHorizontal={14}
+                  borderRadius={16}
+                  borderWidth={1}
+                  borderColor={Colors.border}
+                  backgroundColor={Colors.bgCard}
+                  onPress={() => setShowDate(true)}
+                >
+                  <CalendarIcon size={16} color={Colors.textMuted} />
+                  <StyledText
+                    flex={1}
+                    fontSize={13}
+                    fontWeight="600"
+                    color={Colors.textPrimary}
+                  >
+                    {format(date, "MMM d, yyyy")}
+                  </StyledText>
+                  <ChevronDownIcon size={14} color={Colors.textMuted} />
+                </StyledPressable>
+              </Stack>
+            )}
+
+            {/* ── Notes field ──────────────────────────────────────────── */}
+            <Stack paddingHorizontal={20} marginBottom={24}>
+              <StyledTextInput
+                variant="filled"
+                placeholder="Note: Enter a note"
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={2}
+                fontSize={14}
+                borderRadius={16}
+              />
             </Stack>
-          )}
 
-          {/* Transfer date pill */}
-          {txType === "transfer" && (
-            <Stack paddingHorizontal={20} marginBottom={14}>
+            {/* ── Save button ───────────────────────────────────────────── */}
+            <Stack paddingHorizontal={20}>
               <StyledPressable
-                flexDirection="row"
+                paddingVertical={18}
+                borderRadius={30}
+                backgroundColor={isValid ? accentColor : Colors.bgMuted}
                 alignItems="center"
-                gap={8}
-                paddingVertical={12}
-                paddingHorizontal={14}
-                borderRadius={16}
-                borderWidth={1}
-                borderColor={Colors.border}
-                backgroundColor={Colors.bgCard}
-                onPress={() => setShowDate(true)}
-              >
-                <CalendarIcon size={16} color={Colors.textMuted} />
-                <StyledText
-                  flex={1}
-                  fontSize={13}
-                  fontWeight="600"
-                  color={Colors.textPrimary}
-                >
-                  {format(date, "MMM d, yyyy")}
-                </StyledText>
-                <ChevronDownIcon size={14} color={Colors.textMuted} />
-              </StyledPressable>
-            </Stack>
-          )}
-
-          {/* ── Notes field ──────────────────────────────────────────── */}
-          <Stack paddingHorizontal={20} marginBottom={24}>
-            <StyledTextInput
-              variant="filled"
-              placeholder="Note: Enter a note"
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={2}
-              fontSize={14}
-              borderRadius={16}
-            />
-          </Stack>
-
-          {/* ── Save button ───────────────────────────────────────────── */}
-          <Stack paddingHorizontal={20}>
-            <StyledPressable
-              paddingVertical={18}
-              borderRadius={30}
-              backgroundColor={isValid ? accentColor : Colors.bgMuted}
-              alignItems="center"
-              justifyContent="center"
-              onPress={handleSave}
-              disabled={!isValid}
-              style={
-                isValid
-                  ? {
+                justifyContent="center"
+                onPress={handleSave}
+                disabled={!isValid}
+                style={
+                  isValid
+                    ? {
                       shadowColor: accentColor,
                       shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.4,
                       shadowRadius: 8,
                       elevation: 6,
                     }
-                  : undefined
-              }
-            >
-              <StyledText
-                fontSize={16}
-                fontWeight="800"
-                color={isValid ? Colors.white : Colors.textMuted}
+                    : undefined
+                }
               >
-                Save Transaction
-              </StyledText>
-            </StyledPressable>
+                <StyledText
+                  fontSize={16}
+                  fontWeight="800"
+                  color={isValid ? Colors.white : Colors.textMuted}
+                >
+                  Save Transaction
+                </StyledText>
+              </StyledPressable>
+            </Stack>
           </Stack>
         </ScrollView>
 

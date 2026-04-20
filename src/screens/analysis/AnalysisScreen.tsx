@@ -326,25 +326,26 @@ const TREND_RANGES = ['1D', '1W', '1M', '3M', '1Y', 'ALL'] as const
 type TrendRange = '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'
 
 function MonthlyPill() {
+  const Colors = useColors()
   return (
     <Stack
       paddingHorizontal={14}
       paddingVertical={7}
       borderRadius={20}
-      backgroundColor="#fff"
+      backgroundColor={Colors.bgMuted}
       borderWidth={1}
-      borderColor="rgba(0,0,0,0.09)"
+      borderColor={`rgba(255,255,255,0.06)`}
       alignItems="center"
       justifyContent="center"
       style={{
         shadowColor: '#000',
-        shadowOpacity: 0.07,
+        shadowOpacity: 0.15,
         shadowRadius: 4,
         shadowOffset: { width: 0, height: 1 },
         elevation: 2,
       }}
     >
-      <StyledText fontSize={13} fontWeight="600" color="#1a1a2e">Monthly ▾</StyledText>
+      <StyledText fontSize={13} fontWeight="600" color={Colors.textPrimary}>Monthly ▾</StyledText>
     </Stack>
   )
 }
@@ -379,16 +380,16 @@ function TrendsTab({ data, symbol, loading }: {
     )
   }
 
-  // ── Palette ───────────────────────────────────────────────────────────────
-  const INC_BG       = '#EBE9FF'
-  const INC_ACTIVE   = '#6C63FF'
-  const INC_INACTIVE = '#C4C0F5'
-  const INC_LABEL    = '#6B6B9E'
-  const INC_TITLE    = '#1A1A2E'
-  const EXP_BG       = '#E4F5EE'
-  const EXP_LINE     = '#F07B72'
-  const EXP_LABEL    = '#7BA99A'
-  const EXP_TITLE    = '#1A2E28'
+  // ── Color Palette (Dark Theme) ───────────────────────────────────────────
+  const CARD_BG      = Colors.bgCard
+  const INC_ACTIVE   = Colors.income
+  const INC_INACTIVE = Colors.income + '33'  // 20% opacity
+  const INC_LABEL    = Colors.textMuted
+  const INC_TITLE    = Colors.textPrimary
+  const EXP_BG       = Colors.bgCard
+  const EXP_LINE     = Colors.expense
+  const EXP_LABEL    = Colors.textMuted
+  const EXP_TITLE    = Colors.textPrimary
 
   // ── Dimensions ────────────────────────────────────────────────────────────
   const CARD_PAD   = 20
@@ -451,13 +452,13 @@ function TrendsTab({ data, symbol, loading }: {
       <Svg width={incSvgW} height={BAR_H} viewBox={`0 0 ${incSvgW} ${BAR_H}`}>
         <Defs>
           <SvgLinearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#8B85FF" stopOpacity="1" />
-            <Stop offset="1" stopColor={INC_ACTIVE} stopOpacity="1" />
+            <Stop offset="0" stopColor={INC_ACTIVE} stopOpacity="1" />
+            <Stop offset="1" stopColor={INC_ACTIVE} stopOpacity="0.6" />
           </SvgLinearGradient>
         </Defs>
 
         {/* Subtle horizontal rule */}
-        <Rect x={0} y={RULE_Y} width={incSvgW} height={1} fill="rgba(160,155,220,0.35)" />
+        <Rect x={0} y={RULE_Y} width={incSvgW} height={1} fill="rgba(255,255,255,0.08)" />
 
         {validMonthly.map((m, i) => {
           const raw      = Number(m.income) || 0
@@ -533,7 +534,7 @@ function TrendsTab({ data, symbol, loading }: {
         <Defs>
           <SvgLinearGradient id="expArea" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={EXP_LINE} stopOpacity="0.25" />
-            <Stop offset="1" stopColor={EXP_BG}   stopOpacity="0.0"  />
+            <Stop offset="1" stopColor={EXP_LINE}   stopOpacity="0.0"  />
           </SvgLinearGradient>
         </Defs>
         {/* Area fill */}
@@ -547,7 +548,7 @@ function TrendsTab({ data, symbol, loading }: {
             <G key={i}>
               <Circle cx={pt.x} cy={pt.y} r={isSel ? 6 : 3}
                 fill={isSel ? EXP_TITLE : EXP_LINE}
-                stroke={isSel ? '#fff' : 'none'}
+                stroke={isSel ? Colors.textPrimary : 'none'}
                 strokeWidth={isSel ? 2 : 0}
               />
               {/* Hit area */}
@@ -585,8 +586,8 @@ function TrendsTab({ data, symbol, loading }: {
                 height={bh}
                 rx={8}
                 ry={8}
-                fill="#fff"
-                opacity="0.98"
+                fill={Colors.bgMuted}
+                opacity="0.95"
               />
               <SvgText
                 x={bx + bw/2}
@@ -595,7 +596,7 @@ function TrendsTab({ data, symbol, loading }: {
                 fontSize="12"
                 fontWeight="700"
                 fontFamily="System"
-                fill={EXP_TITLE}
+                fill={Colors.textPrimary}
               >
                 {txt}
               </SvgText>
@@ -615,13 +616,15 @@ function TrendsTab({ data, symbol, loading }: {
       {/* ══ INCOME CARD ══════════════════════════════════════════════════════ */}
       <Stack
         borderRadius={22}
-        backgroundColor={INC_BG}
+        backgroundColor={CARD_BG}
+        borderWidth={1}
+        borderColor={`rgba(255,255,255,0.06)`}
         style={{
-          shadowColor: '#8B87CC',
-          shadowOpacity: 0.2,
-          shadowRadius: 14,
-          shadowOffset: { width: 0, height: 5 },
-          elevation: 6,
+          shadowColor: '#000',
+          shadowOpacity: 0.25,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 5,
           overflow: 'hidden',
         }}
       >
@@ -665,7 +668,7 @@ function TrendsTab({ data, symbol, loading }: {
                 <StyledText
                   fontSize={11}
                   fontWeight={isActive ? '700' : '500'}
-                  color={isActive ? '#fff' : INC_LABEL}
+                  color={isActive ? Colors.textPrimary : INC_LABEL}
                 >
                   {label}
                 </StyledText>
@@ -678,13 +681,15 @@ function TrendsTab({ data, symbol, loading }: {
       {/* ══ EXPENSE CARD ═════════════════════════════════════════════════════ */}
       <Stack
         borderRadius={22}
-        backgroundColor={EXP_BG}
+        backgroundColor={CARD_BG}
+        borderWidth={1}
+        borderColor={`rgba(255,255,255,0.06)`}
         style={{
-          shadowColor: '#70B09A',
-          shadowOpacity: 0.15,
+          shadowColor: '#000',
+          shadowOpacity: 0.25,
           shadowRadius: 12,
           shadowOffset: { width: 0, height: 4 },
-          elevation: 4,
+          elevation: 5,
         }}
       >
         {/* Header */}
@@ -721,7 +726,7 @@ function TrendsTab({ data, symbol, loading }: {
                 paddingHorizontal={12}
                 paddingVertical={7}
                 borderRadius={18}
-                backgroundColor={isActive ? '#5BAE96' : 'transparent'}
+                backgroundColor={isActive ? EXP_LINE : 'transparent'}
                 alignItems="center"
                 justifyContent="center"
                 minWidth={34}
@@ -729,7 +734,7 @@ function TrendsTab({ data, symbol, loading }: {
                 <StyledText
                   fontSize={12}
                   fontWeight={isActive ? '700' : '500'}
-                  color={isActive ? '#fff' : EXP_LABEL}
+                  color={isActive ? Colors.textPrimary : EXP_LABEL}
                 >
                   {r}
                 </StyledText>

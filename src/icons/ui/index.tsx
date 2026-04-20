@@ -8,7 +8,6 @@ export const AddIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-AddIcon.displayName = 'AddIcon'
 
 // ─── Back / ArrowLeft ─────────────────────────────────────────────────────────
 export const BackIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -17,7 +16,6 @@ export const BackIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M12 19l-7-7 7-7" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-BackIcon.displayName = 'BackIcon'
 
 // ─── Close / X ────────────────────────────────────────────────────────────────
 export const CloseIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -25,7 +23,6 @@ export const CloseIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-CloseIcon.displayName = 'CloseIcon'
 
 // ─── Check ────────────────────────────────────────────────────────────────────
 export const CheckIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -33,7 +30,6 @@ export const CheckIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M20 6L9 17l-5-5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-CheckIcon.displayName = 'CheckIcon'
 
 // ─── Filter / Sliders ─────────────────────────────────────────────────────────
 export const FilterIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -43,7 +39,6 @@ export const FilterIcon = createIcon(({ size, color, strokeWidth }) => (
     <Line x1="12" y1="18" x2="12" y2="18" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-FilterIcon.displayName = 'FilterIcon'
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 export const SearchIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -52,7 +47,6 @@ export const SearchIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="m21 21-4.35-4.35" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-SearchIcon.displayName = 'SearchIcon'
 
 // ─── Edit / Pencil ────────────────────────────────────────────────────────────
 export const EditIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -61,7 +55,6 @@ export const EditIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-EditIcon.displayName = 'EditIcon'
 
 // ─── Delete / Trash ───────────────────────────────────────────────────────────
 export const DeleteIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -71,7 +64,6 @@ export const DeleteIcon = createIcon(({ size, color, strokeWidth }) => (
     <Line x1="14" y1="11" x2="14" y2="17" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-DeleteIcon.displayName = 'DeleteIcon'
 
 // ─── More / VerticalDots ──────────────────────────────────────────────────────
 export const MoreIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -81,7 +73,6 @@ export const MoreIcon = createIcon(({ size, color, strokeWidth }) => (
     <Circle cx="12" cy="19" r="1" stroke={color} strokeWidth={strokeWidth} fill={color}/>
   </Svg>
 ))
-MoreIcon.displayName = 'MoreIcon'
 
 // ─── ChevronLeft ──────────────────────────────────────────────────────────────
 export const ChevronLeftIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -89,7 +80,6 @@ export const ChevronLeftIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M15 18l-6-6 6-6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-ChevronLeftIcon.displayName = 'ChevronLeftIcon'
 
 // ─── ChevronRight ─────────────────────────────────────────────────────────────
 export const ChevronRightIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -97,7 +87,6 @@ export const ChevronRightIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M9 18l6-6-6-6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-ChevronRightIcon.displayName = 'ChevronRightIcon'
 
 // ─── ChevronDown ──────────────────────────────────────────────────────────────
 export const ChevronDownIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -105,7 +94,6 @@ export const ChevronDownIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M6 9l6 6 6-6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-ChevronDownIcon.displayName = 'ChevronDownIcon'
 
 // ─── TrendingUp ───────────────────────────────────────────────────────────────
 export const TrendUpIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -114,7 +102,6 @@ export const TrendUpIcon = createIcon(({ size, color, strokeWidth }) => (
     <Polyline points="17 6 23 6 23 12" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-TrendUpIcon.displayName = 'TrendUpIcon'
 
 // ─── TrendingDown ─────────────────────────────────────────────────────────────
 export const TrendDownIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -123,7 +110,6 @@ export const TrendDownIcon = createIcon(({ size, color, strokeWidth }) => (
     <Polyline points="17 18 23 18 23 12" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-TrendDownIcon.displayName = 'TrendDownIcon'
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 export const CalendarIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -134,7 +120,6 @@ export const CalendarIcon = createIcon(({ size, color, strokeWidth }) => (
     <Line x1="3"  y1="10" x2="21" y2="10" stroke={color} strokeWidth={strokeWidth}/>
   </Svg>
 ))
-CalendarIcon.displayName = 'CalendarIcon'
 
 // ─── Copy ─────────────────────────────────────────────────────────────────────
 export const CopyIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -143,7 +128,6 @@ export const CopyIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-CopyIcon.displayName = 'CopyIcon'
 
 // ─── Settings / Gear ──────────────────────────────────────────────────────────
 export const SettingsIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -152,7 +136,6 @@ export const SettingsIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke={color} strokeWidth={strokeWidth}/>
   </Svg>
 ))
-SettingsIcon.displayName = 'SettingsIcon'
 
 // ─── Eye / Show ───────────────────────────────────────────────────────────────
 export const EyeIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -161,7 +144,6 @@ export const EyeIcon = createIcon(({ size, color, strokeWidth }) => (
     <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={strokeWidth}/>
   </Svg>
 ))
-EyeIcon.displayName = 'EyeIcon'
 
 // ─── EyeOff / Hide ────────────────────────────────────────────────────────────
 export const EyeOffIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -169,7 +151,6 @@ export const EyeOffIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-EyeOffIcon.displayName = 'EyeOffIcon'
 
 // ─── Menu / Hamburger ─────────────────────────────────────────────────────────
 export const MenuIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -179,7 +160,6 @@ export const MenuIcon = createIcon(({ size, color, strokeWidth }) => (
     <Line x1="3" y1="18" x2="21" y2="18" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-MenuIcon.displayName = 'MenuIcon'
 
 // ─── Bell / Notification ──────────────────────────────────────────────────────
 export const BellIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -187,7 +167,6 @@ export const BellIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-BellIcon.displayName = 'BellIcon'
 
 // ─── Lock ─────────────────────────────────────────────────────────────────────
 export const LockIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -196,7 +175,6 @@ export const LockIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M7 11V7a5 5 0 0110 0v4" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
   </Svg>
 ))
-LockIcon.displayName = 'LockIcon'
 
 // ─── Fingerprint ──────────────────────────────────────────────────────────────
 export const FingerprintIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -209,7 +187,6 @@ export const FingerprintIcon = createIcon(({ size, color, strokeWidth }) => (
     <Path d="M12.5 22c0-1.5.5-3 .5-5.5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-FingerprintIcon.displayName = 'FingerprintIcon'
 
 // ─── Delete (backspace) for calculator ───────────────────────────────────────
 export const BackspaceIcon = createIcon(({ size, color, strokeWidth }) => (
@@ -219,4 +196,21 @@ export const BackspaceIcon = createIcon(({ size, color, strokeWidth }) => (
     <Line x1="12" y1="9" x2="18" y2="15" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"/>
   </Svg>
 ))
-BackspaceIcon.displayName = 'BackspaceIcon'
+
+// ─── Lock Out / Locked ────────────────────────────────────────────────────────
+export const LockOutIcon = createIcon(({ size, color, strokeWidth }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="3" y="11" width="18" height="11" rx="2" stroke={color} strokeWidth={strokeWidth}/>
+    <Path d="M7 11V7a5 5 0 0110 0v4" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+    <Circle cx="12" cy="16" r="1.5" fill={color}/>
+  </Svg>
+))
+
+// ─── Logout / Sign Out ─────────────────────────────────────────────────────────
+export const LogoutIcon = createIcon(({ size, color, strokeWidth }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M10 3H5a2 2 0 00-2 2v14a2 2 0 002 2h5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+    <Polyline points="17 16 21 12 17 8" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+    <Line x1="21" y1="12" x2="10" y2="12" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+  </Svg>
+))

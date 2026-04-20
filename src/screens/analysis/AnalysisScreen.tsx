@@ -34,7 +34,7 @@ function MonthNav() {
         backgroundColor={Colors.accent} alignItems="center" justifyContent="center" onPress={prevMonth}>
         <ChevronLeftIcon size={20} color={Colors.primary} strokeWidth={2.2} />
       </StyledPressable>
-      <StyledText fontSize={16} fontWeight="700" color={Colors.primary}>
+      <StyledText fontSize={16} fontWeight="600" color={Colors.primary}>
         {format(selectedMonth, 'MMMM, yyyy')}
       </StyledText>
       <StyledPressable width={36} height={36} borderRadius={18}
@@ -133,7 +133,7 @@ function MoneyCard({ title, amount, monthlyValues, pctChange, color, bg, symbol,
               This Month
             </StyledText>
             <Stack horizontal alignItems="baseline" gap={6} marginTop={4}>
-              <StyledText fontSize={34} fontWeight="800" color={color} letterSpacing={-1.5}>
+              <StyledText fontSize={34} fontWeight="700" color={color} letterSpacing={-0.8}>
                 {formatCurrency(amount, symbol)}
               </StyledText>
             </Stack>
@@ -186,7 +186,7 @@ function TxRow({ item, symbol }: { item: CategorySpending; symbol: string }) {
           {item.percentage.toFixed(0)}% of total
         </StyledText>
       </Stack>
-      <StyledText fontSize={14} fontWeight="700" color={Colors.textPrimary}>
+      <StyledText fontSize={14} fontWeight="600" color={Colors.textPrimary}>
         {formatCurrency(item.total, symbol)}
       </StyledText>
     </Stack>
@@ -247,7 +247,7 @@ function SpendingTab({ data, symbol, loading }: {
       {/* Net balance summary row */}
       <Stack horizontal alignItems="center" justifyContent="space-between" paddingHorizontal={4} paddingVertical={8}>
         <StyledText fontSize={13} color={Colors.textMuted}>Net Balance This Month</StyledText>
-        <StyledText fontSize={15} fontWeight="800"
+        <StyledText fontSize={15} fontWeight="700"
           color={netBalance >= 0 ? Colors.income : Colors.expense}>
           {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance, symbol)}
         </StyledText>
@@ -310,7 +310,7 @@ function IncomeTab({ data, symbol, loading }: {
       {/* Net balance summary row */}
       <Stack horizontal alignItems="center" justifyContent="space-between" paddingHorizontal={4} paddingVertical={8}>
         <StyledText fontSize={13} color={Colors.textMuted}>Net Balance This Month</StyledText>
-        <StyledText fontSize={15} fontWeight="800"
+        <StyledText fontSize={15} fontWeight="700"
           color={netBalance >= 0 ? Colors.income : Colors.expense}>
           {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance, symbol)}
         </StyledText>
@@ -556,10 +556,14 @@ function TrendsTab({ data, symbol, loading }: {
               />
               {/* X-axis label */}
               <SvgText
-                x={pt.x} y={LINE_H + 16}
+                x={pt.x}
+                y={LINE_H + 16}
                 textAnchor="middle"
-                fontSize="11" fontWeight="600"
-                fill={EXP_LABEL}>
+                fontSize="11"
+                fontWeight="600"
+                fontFamily="System"
+                fill={EXP_LABEL}
+              >
                 {pt.label}
               </SvgText>
             </G>
@@ -574,12 +578,25 @@ function TrendsTab({ data, symbol, loading }: {
           const by     = Math.max(selPt.y - bh - 10, 0)
           return (
             <G>
-              <Rect x={bx} y={by} width={bw} height={bh} rx={8} ry={8}
+              <Rect
+                x={bx}
+                y={by}
+                width={bw}
+                height={bh}
+                rx={8}
+                ry={8}
                 fill="#fff"
-                style={{ shadowColor:'#000', shadowOpacity:0.12, shadowRadius:6, elevation:4 } as any}
+                opacity="0.98"
               />
-              <SvgText x={bx + bw/2} y={by + bh/2 + 4.5}
-                textAnchor="middle" fontSize="12" fontWeight="700" fill={EXP_TITLE}>
+              <SvgText
+                x={bx + bw/2}
+                y={by + bh/2 + 4.5}
+                textAnchor="middle"
+                fontSize="12"
+                fontWeight="700"
+                fontFamily="System"
+                fill={EXP_TITLE}
+              >
                 {txt}
               </SvgText>
             </G>
@@ -611,13 +628,13 @@ function TrendsTab({ data, symbol, loading }: {
         {/* Header */}
         <Stack padding={CARD_PAD} paddingBottom={0}>
           <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={4}>
-            <StyledText fontSize={26} fontWeight="800" color={INC_TITLE} letterSpacing={-0.5}>Income by</StyledText>
+            <StyledText fontSize={26} fontWeight="700" color={INC_TITLE} letterSpacing={-0.5}>Income by</StyledText>
             <MonthlyPill />
           </Stack>
           <StyledText fontSize={12} color={INC_LABEL} marginBottom={18}>
             Viewing last {n} months chart
           </StyledText>
-          <StyledText fontSize={32} fontWeight="800" color={INC_TITLE} letterSpacing={-1} marginBottom={2}>
+          <StyledText fontSize={32} fontWeight="700" color={INC_TITLE} letterSpacing={-1} marginBottom={2}>
             {formatCurrency(totalIncome, symbol)}
           </StyledText>
           <StyledText fontSize={12} color={INC_LABEL} marginBottom={16}>Total income</StyledText>
@@ -673,13 +690,13 @@ function TrendsTab({ data, symbol, loading }: {
         {/* Header */}
         <Stack padding={CARD_PAD} paddingBottom={0}>
           <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={4}>
-            <StyledText fontSize={26} fontWeight="800" color={EXP_TITLE} letterSpacing={-0.5}>Expense by</StyledText>
+            <StyledText fontSize={26} fontWeight="700" color={EXP_TITLE} letterSpacing={-0.5}>Expense by</StyledText>
             <MonthlyPill />
           </Stack>
           <StyledText fontSize={12} color={EXP_LABEL} marginBottom={18}>
             Viewing last {filteredExpense.length} months chart
           </StyledText>
-          <StyledText fontSize={32} fontWeight="800" color={EXP_TITLE} letterSpacing={-1} marginBottom={2}>
+          <StyledText fontSize={32} fontWeight="700" color={EXP_TITLE} letterSpacing={-1} marginBottom={2}>
             {formatCurrency(rangeTotal.expense || filteredExpTotal, symbol)}
           </StyledText>
           <StyledText fontSize={12} color={EXP_LABEL} marginBottom={12}>Total expense</StyledText>
@@ -739,7 +756,7 @@ export default function AnalysisScreen() {
     <StyledPage flex={1} backgroundColor={Colors.bg}>
       <Stack flex={1}>
         <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
-          <StyledText fontSize={22} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.5}>Analysis</StyledText>
+          <StyledText fontSize={22} fontWeight="700" color={Colors.textPrimary} letterSpacing={-0.5}>Analysis</StyledText>
         </Stack>
 
         <MonthNav />

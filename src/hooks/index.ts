@@ -9,6 +9,7 @@ export { useCategories }       from './useCategories'
 export { useTransactions }     from './useTransactions'
 export { useBudgets }          from './useBudgets'
 export { useAnalysis }         from './useAnalysis'
+export { useExpenseRangeTotal } from './useExpenseRangeTotal'
 
 // ─── Re-exported types ────────────────────────────────────────────────────────
 export type { TransactionWithRefs } from './useTransactions'

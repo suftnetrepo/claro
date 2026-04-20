@@ -200,6 +200,19 @@ export const transactionService = {
     return result
   },
 
+  // Total expense/income for an arbitrary date range — used by Trends range selector
+  getTotalByDateRange: async (start: Date, end: Date): Promise<{ expense: number; income: number }> => {
+    const rows = await db
+      .select({ type: transactions.type, total: sum(transactions.amount) })
+      .from(transactions)
+      .where(and(gte(transactions.date, start), lte(transactions.date, end)))
+      .groupBy(transactions.type)
+    return {
+      expense: Number(rows.find(r => r.type === 'expense')?.total ?? 0),
+      income:  Number(rows.find(r => r.type === 'income')?.total  ?? 0),
+    }
+  },
+
   // Monthly totals for the last N months — for the Trends tab
   getMonthlyTotals: async (months: Date[]): Promise<{ month: string; expense: number; income: number }[]> => {
     const results = await Promise.all(

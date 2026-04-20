@@ -81,12 +81,7 @@ function HomeHeader({ symbol }: { symbol: string }) {
         padding={18}
         borderRadius={20}
         backgroundColor={Colors.primary}
-        style={{
-          shadowColor: Colors.primaryDark,
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
-        }}
+       
       >
         <Text variant="label" color="rgba(255,255,255,0.75)" marginBottom={6}>
           Total Balance
@@ -157,7 +152,7 @@ function MonthlySummary({
 }) {
   const Colors = useColors();
   return (
-    <Stack horizontal gap={12} paddingHorizontal={20} paddingVertical={16}>
+    <Stack horizontal gap={12} paddingHorizontal={20} >
       <StyledCard
         flex={1}
         padding={16}
@@ -165,12 +160,7 @@ function MonthlySummary({
         backgroundColor={Colors.bgCard}
         borderWidth={1}
         borderColor={Colors.border}
-        style={{
-          shadowColor: Colors.border,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.8,
-          shadowRadius: 4,
-        }}
+       
       >
         <Stack
           horizontal
@@ -213,13 +203,9 @@ function MonthlySummary({
         borderRadius={20}
         backgroundColor={Colors.bgCard}
         borderWidth={1}
+   
         borderColor={Colors.border}
-        style={{
-          shadowColor: Colors.border,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.8,
-          shadowRadius: 4,
-        }}
+        
       >
         <Stack
           horizontal
@@ -294,26 +280,26 @@ function TransactionRow({
       >
         <IconCircle iconKey={iconKey} bg={iconBg} size={46} />
         <Stack flex={1} gap={3} marginLeft={14}>
-          <StyledText
+          <Text
             fontSize={15}
             fontWeight="700"
             color={Colors.textPrimary}
             numberOfLines={1}
           >
             {tx.categoryName ?? (isTransfer ? "Transfer" : "Uncategorized")}
-          </StyledText>
+          </Text>
           <Stack horizontal alignItems="center" gap={6}>
             {tx.accountName ? (
-              <StyledText fontSize={12} color={Colors.textMuted}>
+              <Text fontSize={12} color={Colors.textMuted}>
                 {tx.accountName}
-              </StyledText>
+              </Text>
             ) : null}
-            <StyledText fontSize={12} color={Colors.textMuted}>
+            <Text fontSize={12} color={Colors.textMuted}>
               · {formatTime(new Date(tx.date))}
-            </StyledText>
+            </Text>
           </Stack>
         </Stack>
-        <StyledText
+        <Text
           fontSize={15}
           fontWeight="700"
           color={
@@ -326,7 +312,7 @@ function TransactionRow({
         >
           {isIncome ? "+" : isTransfer ? "" : "-"}
           {formatCurrency(tx.amount, symbol)}
-        </StyledText>
+        </Text>
       </StyledPressable>
     </SwipeableRow>
   );
@@ -411,22 +397,23 @@ export default function RecordsScreen() {
         />
 
         {/* Latest transactions header */}
-        <Stack
+        {/* <Stack
           horizontal
           alignItems="center"
           justifyContent="space-between"
           paddingHorizontal={20}
+          marginTop={16}
           paddingBottom={10}
         >
-          <StyledText fontSize={16} fontWeight="800" color={Colors.textPrimary}>
+          <Text fontSize={16} fontWeight="800" color={Colors.textPrimary}>
             Latest Transactions
-          </StyledText>
+          </Text>
           <StyledPressable onPress={() => {}}>
-            <StyledText fontSize={13} fontWeight="600" color={Colors.primary}>
+            <Text fontSize={13} fontWeight="600" color={Colors.primary}>
               See All →
-            </StyledText>
+            </Text>
           </StyledPressable>
-        </Stack>
+        </Stack> */}
 
         {loading && !refreshing ? (
           <Stack paddingHorizontal={16}>
@@ -456,14 +443,14 @@ export default function RecordsScreen() {
                 borderBottomWidth={1}
                 borderBottomColor={Colors.border}
               >
-                <StyledText
+                <Text
                   fontSize={12}
                   fontWeight="700"
                   color={Colors.textMuted}
                   letterSpacing={0.5}
                 >
                   {title.toUpperCase()}
-                </StyledText>
+                </Text>
               </Stack>
             )}
             renderItem={({ item }) => (
@@ -504,13 +491,7 @@ export default function RecordsScreen() {
           alignItems="center"
           justifyContent="center"
           onPress={() => router.push("/add-transaction" as any)}
-          style={{
-            shadowColor: Colors.primaryDark,
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.35,
-            shadowRadius: 10,
-            elevation: 8,
-          }}
+          
         >
           <AddIcon size={26} color={Colors.white} strokeWidth={2.5} />
         </StyledPressable>

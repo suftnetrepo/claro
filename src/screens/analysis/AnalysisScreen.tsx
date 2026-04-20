@@ -897,10 +897,10 @@ function TrendsTab({
         borderColor={`rgba(255,255,255,0.06)`}
         style={{
           shadowColor: "#000",
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 5,
+          shadowOpacity: 0.04,
+          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 1,
           overflow: "hidden",
         }}
       >
@@ -988,10 +988,10 @@ function TrendsTab({
         borderColor={`rgba(255,255,255,0.06)`}
         style={{
           shadowColor: "#000",
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 5,
+          shadowOpacity: 0.04,
+          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 1,
         }}
       >
         {/* Header */}

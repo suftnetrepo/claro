@@ -2,7 +2,7 @@ import React from 'react'
 import { FlatList } from 'react-native'
 import { Stack, StyledText, StyledPressable } from 'fluent-styles'
 import { IconCircle } from '../icons/map'
-import { Colors } from '../constants'
+import { useColors } from '../constants'
 
 interface IconPickerProps {
   keys:      string[]
@@ -16,11 +16,14 @@ interface IconPickerProps {
 export const IconPicker: React.FC<IconPickerProps> = ({
   keys, selected, color, onSelect, label = 'Icon', type = 'category',
 }) => {
+  const Colors = useColors()
   return (
     <Stack gap={10}>
-      <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={0.5}>
-        {label.toUpperCase()}
-      </StyledText>
+      {label.trim().length > 0 && (
+        <StyledText fontSize={13} fontWeight="700" color={Colors.textMuted} letterSpacing={0.5}>
+          {label.toUpperCase()}
+        </StyledText>
+      )}
       <FlatList
         data={keys}
         keyExtractor={k => k}
@@ -34,7 +37,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
               alignItems="center"
               paddingVertical={8}
               borderRadius={12}
-              backgroundColor={isSelected ? Colors.accent : 'transparent'}
+              backgroundColor="transparent"
               onPress={() => onSelect(item)}
             >
               <IconCircle

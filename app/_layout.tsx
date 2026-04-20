@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Slot, router } from 'expo-router'
+import { Slot, Stack, router } from 'expo-router'
 import { GlobalPortalProvider, PortalManager } from 'fluent-styles'
 import * as SplashScreen from 'expo-splash-screen'
 import Purchases from 'react-native-purchases'
@@ -99,7 +99,19 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GlobalPortalProvider>
         <PortalManager>
-          <Slot />
+          <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(lock)" options={{ headerShown: false }} />
+            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+            <Stack.Screen name="add-account" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="add-transaction" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="edit-transaction" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="set-budget" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="add-category" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="change-pin" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="premium" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen name="all-transactions" options={{ headerShown: false, animation: 'slide_from_right' }} />
+          </Stack>
         </PortalManager>
       </GlobalPortalProvider>
     </GestureHandlerRootView>

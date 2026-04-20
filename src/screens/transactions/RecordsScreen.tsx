@@ -230,7 +230,7 @@ export default function RecordsScreen() {
           <StyledText fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>
             Transactions
           </StyledText>
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity onPress={() => router.push('/all-transactions' as any)}>
             <StyledText fontSize={13} fontWeight="600" color={Colors.primary}>See All →</StyledText>
           </TouchableOpacity>
         </View>

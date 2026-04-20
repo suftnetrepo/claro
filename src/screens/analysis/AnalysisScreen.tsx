@@ -845,7 +845,7 @@ function TrendsTab({
         {/* Tooltip bubble above selected point */}
         {selPt &&
           (() => {
-            const txt = `${symbol}${selPt.val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const txt = formatCurrency(selPt.val, symbol);
             const bw = txt.length * 7.5 + 20;
             const bh = 28;
             const bx = Math.min(Math.max(selPt.x - bw / 2, 0), lineSvgW - bw);

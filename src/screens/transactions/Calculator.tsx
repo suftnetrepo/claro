@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { View, TouchableOpacity } from 'react-native'
 import { StyledText } from 'fluent-styles'
 import { BackspaceIcon } from '../../icons'
@@ -22,6 +22,16 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol,
   const Colors = useColors()
   const accent  = accentColor ?? Colors.primary
 
+  // Format display value with thousands separator while keeping raw value for input
+  const displayValue = useMemo(() => {
+    const num = parseFloat(value) || 0
+    const formatted = num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+    return formatted
+  }, [value])
+
   const handleKey = useCallback((key: string) => {
     if (key === '⌫') { onChange(value.length <= 1 ? '0' : value.slice(0, -1)); return }
     if (key === '.' && value.includes('.')) return
@@ -32,8 +42,6 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol,
     onChange(value + key)
   }, [value, onChange])
 
-  const displayValue = value === '' ? '0' : value
-
   return (
     <View>
       {/* Amount display */}
@@ -41,7 +49,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol,
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
           <StyledText fontSize={22} fontWeight="700" color={Colors.textMuted}>{symbol}</StyledText>
           <StyledText
-            fontSize={displayValue.length > 8 ? 42 : 58}
+            fontSize={displayValue.length > 10 ? 42 : 58}
             fontWeight="800"
             color={Colors.textPrimary}
             letterSpacing={-2}

@@ -1,5 +1,10 @@
-import React, { useCallback, useState } from "react";
-import { SectionList, RefreshControl, useWindowDimensions } from "react-native";
+import React, { useCallback, useState, useEffect, useRef } from "react";
+import {
+  SectionList,
+  RefreshControl,
+  PanResponder,
+  useWindowDimensions,
+} from "react-native";
 import {
   Stack,
   StyledPressable,
@@ -7,236 +12,433 @@ import {
   StyledSkeleton,
   StyledPage,
   StyledCard,
-  StyleShape,
+  StyledDivider,
 } from "fluent-styles";
 import { dialogueService, toastService } from "fluent-styles";
 import { router, useFocusEffect } from "expo-router";
-import { format } from "date-fns";
-import { Text } from "../../components";
+import { format, subMonths } from "date-fns";
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient as SvgGrad,
+  Stop,
+  Line,
+  Circle,
+  Rect,
+  Text as SvgText,
+} from "react-native-svg";
 import { IconCircle } from "../../icons/map";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  AddIcon,
-  LogoutIcon,
-  Sparkline,
-} from "../../icons";
+import { ChevronLeftIcon, ChevronRightIcon, AddIcon } from "../../icons";
+import { ClaroLogo } from "../../components/ClaroLogo";
 import { useColors } from "../../constants";
 import { useTransactions, useAccounts, useSettings } from "../../hooks";
 import { useRecordsStore } from "../../stores";
 import { formatCurrency, formatShortDate, formatTime } from "../../utils";
-import { SwipeableRow, ClaroLogo, RowDivider } from "../../components";
+import { SwipeableRow, Text } from "../../components";
+import { transactionService } from "../../services/transactionService";
 import type { TransactionWithRefs } from "../../hooks";
 
-// ─── Header ───────────────────────────────────────────────────────────────────
-function HomeHeader({ symbol }: { symbol: string }) {
+// ─── Interactive multi-line chart ─────────────────────────────────────────────
+interface ChartPoint {
+  month: string;
+  expense: number;
+  income: number;
+}
+
+function SpendChart({ data, symbol }: { data: ChartPoint[]; symbol: string }) {
+  const Colors = useColors();
+  const { width: screenW } = useWindowDimensions();
+  const W = screenW - 40;
+  const H = 160;
+  const PAD = { top: 24, bottom: 32, left: 36, right: 12 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  const [tooltip, setTooltip] = useState<{ x: number; idx: number } | null>(
+    null,
+  );
+  const svgRef = useRef<any>(null);
+
+  if (!data.length) return null;
+
+  const maxVal = Math.max(...data.map((d) => Math.max(d.expense, d.income)), 1);
+  const yMax = Math.ceil(maxVal / 1000) * 1000 || 1000;
+  const yTicks = [0, yMax * 0.33, yMax * 0.66, yMax].map((v) => Math.round(v));
+
+  const xPos = (i: number) => PAD.left + (i / (data.length - 1 || 1)) * chartW;
+  const yPos = (v: number) => PAD.top + chartH - (v / yMax) * chartH;
+
+  const smoothPath = (pts: [number, number][]) => {
+    if (pts.length < 2) return "";
+    let d = `M ${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1];
+      const [x1, y1] = pts[i];
+      const cpx = (x0 + x1) / 2;
+      d += ` C ${cpx} ${y0} ${cpx} ${y1} ${x1} ${y1}`;
+    }
+    return d;
+  };
+
+  const expPts = data.map((d, i): [number, number] => [
+    xPos(i),
+    yPos(d.expense),
+  ]);
+  const incPts = data.map((d, i): [number, number] => [
+    xPos(i),
+    yPos(d.income),
+  ]);
+  const expPath = smoothPath(expPts);
+  const incPath = smoothPath(incPts);
+  const expArea =
+    expPath +
+    ` L ${xPos(data.length - 1)} ${PAD.top + chartH} L ${PAD.left} ${PAD.top + chartH} Z`;
+  const incArea =
+    incPath +
+    ` L ${xPos(data.length - 1)} ${PAD.top + chartH} L ${PAD.left} ${PAD.top + chartH} Z`;
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (e) => handleTouch(e.nativeEvent.locationX),
+    onPanResponderMove: (e) => handleTouch(e.nativeEvent.locationX),
+    onPanResponderRelease: () => setTooltip(null),
+    onPanResponderTerminate: () => setTooltip(null),
+  });
+
+  const handleTouch = (lx: number) => {
+    const relX = lx - PAD.left;
+    const idx = Math.round((relX / chartW) * (data.length - 1));
+    const clamped = Math.max(0, Math.min(data.length - 1, idx));
+    setTooltip({ x: xPos(clamped), idx: clamped });
+  };
+
+  const ttIdx = tooltip?.idx ?? -1;
+  const ttData = ttIdx >= 0 ? data[ttIdx] : null;
+  const fmtY = (v: number) =>
+    v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
+
+  return (
+    <Stack {...panResponder.panHandlers} overflow="hidden">
+      <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+        <Defs>
+          <SvgGrad id="expGrad" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={Colors.expense} stopOpacity="0.18" />
+            <Stop offset="1" stopColor={Colors.expense} stopOpacity="0" />
+          </SvgGrad>
+          <SvgGrad id="incGrad" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={Colors.income} stopOpacity="0.15" />
+            <Stop offset="1" stopColor={Colors.income} stopOpacity="0" />
+          </SvgGrad>
+        </Defs>
+
+        {yTicks.map((v, i) => {
+          const y = yPos(v);
+          return (
+            <React.Fragment key={i}>
+              <Line
+                x1={PAD.left}
+                y1={y}
+                x2={W - PAD.right}
+                y2={y}
+                stroke={Colors.border}
+                strokeWidth="0.5"
+                strokeDasharray={i === 0 ? "" : "3,3"}
+                opacity={0.6}
+              />
+              <SvgText
+                x={PAD.left - 4}
+                y={y + 4}
+                textAnchor="end"
+                fontSize={9}
+                fill={Colors.textMuted}
+                fontWeight="500"
+              >
+                {fmtY(v)}
+              </SvgText>
+            </React.Fragment>
+          );
+        })}
+
+        <Path d={expArea} fill="url(#expGrad)" />
+        <Path d={incArea} fill="url(#incGrad)" />
+
+        <Path
+          d={expPath}
+          stroke={Colors.expense}
+          strokeWidth="2.2"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d={incPath}
+          stroke={Colors.income}
+          strokeWidth="2.2"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.75"
+        />
+
+        {data.map((d, i) => (
+          <SvgText
+            key={i}
+            x={xPos(i)}
+            y={H - 6}
+            textAnchor="middle"
+            fontSize={10}
+            fill={ttIdx === i ? Colors.textPrimary : Colors.textMuted}
+            fontWeight={ttIdx === i ? "700" : "500"}
+          >
+            {d.month}
+          </SvgText>
+        ))}
+
+        {tooltip && ttData && (
+          <>
+            <Line
+              x1={tooltip.x}
+              y1={PAD.top}
+              x2={tooltip.x}
+              y2={PAD.top + chartH}
+              stroke={Colors.primary}
+              strokeWidth="1"
+              strokeDasharray="4,3"
+              opacity="0.6"
+            />
+            <Circle
+              cx={tooltip.x}
+              cy={yPos(ttData.expense)}
+              r={5}
+              fill={Colors.bgCard}
+              stroke={Colors.expense}
+              strokeWidth="2.5"
+            />
+            <Circle
+              cx={tooltip.x}
+              cy={yPos(ttData.income)}
+              r={5}
+              fill={Colors.bgCard}
+              stroke={Colors.income}
+              strokeWidth="2.5"
+            />
+            {(() => {
+              const bw = 62,
+                bh = 22,
+                br = 8;
+              const bx = Math.min(
+                Math.max(tooltip.x - bw / 2, PAD.left),
+                W - PAD.right - bw,
+              );
+              const by = yPos(ttData.expense) - bh - 8;
+              const label = formatCurrency(ttData.expense, symbol);
+              return (
+                <>
+                  <Rect
+                    x={bx}
+                    y={by}
+                    width={bw}
+                    height={bh}
+                    rx={br}
+                    fill={Colors.expense}
+                  />
+                  <SvgText
+                    x={bx + bw / 2}
+                    y={by + bh / 2 + 4}
+                    textAnchor="middle"
+                    fontSize={10}
+                    fill="#fff"
+                    fontWeight="700"
+                  >
+                    {label}
+                  </SvgText>
+                </>
+              );
+            })()}
+          </>
+        )}
+      </Svg>
+    </Stack>
+  );
+}
+
+// ─── Header with chart ────────────────────────────────────────────────────────
+// FIX: totalIncome + totalExpense passed from parent (live from useTransactions)
+function HomeHeader({
+  symbol,
+  totalIncome,
+  totalExpense,
+}: {
+  symbol: string;
+  totalIncome: number;
+  totalExpense: number;
+}) {
   const Colors = useColors();
   const { totalBalance } = useAccounts();
-  const { selectedMonth, prevMonth, nextMonth } = useRecordsStore();
+  // FIX: dataVersion triggers chart reload on any transaction change
+  const { selectedMonth, prevMonth, nextMonth, dataVersion } =
+    useRecordsStore();
   const isNow =
     selectedMonth.getMonth() === new Date().getMonth() &&
     selectedMonth.getFullYear() === new Date().getFullYear();
 
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+
+  // FIX: depend on dataVersion so chart reloads when transactions change
+  useEffect(() => {
+    const months = Array.from({ length: 5 }, (_, i) =>
+      subMonths(new Date(), 4 - i),
+    );
+    transactionService.getMonthlyTotals(months).then(setChartData);
+  }, [dataVersion]);
+
   return (
-    <Stack paddingHorizontal={20} paddingBottom={8}>
+    <Stack paddingHorizontal={20} paddingTop={12} paddingBottom={8}>
+      {/* Top row — logo + month nav */}
       <Stack
         horizontal
         alignItems="center"
         justifyContent="space-between"
-        marginBottom={8}
+        marginBottom={16}
       >
-        <Stack
-          flex={1}
-          gap={8}
-          alignItems="center"
-          horizontal
-          justifyContent="flex-start"
-        >
-          <ClaroLogo size={36} variant="icon" />
-          <Text
-            fontSize={32}
-            fontWeight="800"
-            color={Colors.textPrimary}
-            letterSpacing={-0.8}
-          >
+        <Stack marginHorizontal={8} horizontal gap={8} alignItems="center" justifyContent="flex-start">
+          <ClaroLogo size={32} variant="icon" />
+          <Text variant="title"  color={Colors.textPrimary}>
             Claro
           </Text>
         </Stack>
-        <StyledPressable onPress={() => router.replace("/(lock)" as any)}>
-          <StyleShape size={48} cycle backgroundColor={Colors.bgCard}>
-            <LogoutIcon size={20} color={Colors.textSecondary} />
-          </StyleShape>
-        </StyledPressable>
-      </Stack>
 
-      {/* Balance card */}
-      <StyledCard
-        padding={22}
-        borderRadius={24}
-        backgroundColor={Colors.primary}
-        overflow="hidden"
-        style={{
-          shadowColor: Colors.primaryDark,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.32,
-          shadowRadius: 16,
-          elevation: 10,
-        }}
-      >
-        <Stack
-          position="absolute"
-          top={20}
-          right={50}
-          width={60}
-          height={0}
-          borderRadius={30}
-          backgroundColor="rgba(255,255,255,0.05)"
-        />
-        <Text
-          variant="label"
-          color="rgba(255,255,255,0.7)"
-          fontSize={13}
-          letterSpacing={0.3}
-        >
-          Total Balance
-        </Text>
-        <Text
-        variant="amount"
-          fontSize={40}
-          fontWeight="800"
-          color="#fff"
-          letterSpacing={-1.5}
-          marginTop={6}
-          marginBottom={18}
-        >
-          {formatCurrency(totalBalance, symbol)}
-        </Text>
-        <Stack horizontal alignItems="center" justifyContent="space-between">
+        <Stack horizontal alignItems="center" gap={6}>
           <StyledPressable
-            width={34}
-            height={34}
-            borderRadius={17}
-            backgroundColor="rgba(255,255,255,0.18)"
+            width={30}
+            height={30}
+            borderRadius={15}
+            backgroundColor={Colors.bgMuted}
             alignItems="center"
             justifyContent="center"
             onPress={prevMonth}
           >
-            <ChevronLeftIcon size={16} color="#fff" strokeWidth={2.5} />
+            <ChevronLeftIcon
+              size={14}
+              color={Colors.textMuted}
+              strokeWidth={2.5}
+            />
           </StyledPressable>
-          <Text variant="label" color="rgba(255,255,255,0.92)">
-            {format(selectedMonth, "MMMM yyyy")}
+          <Text fontSize={13} fontWeight="700" color={Colors.primary}>
+            {format(selectedMonth, "MMM yyyy")}
           </Text>
           <StyledPressable
-            width={34}
-            height={34}
-            borderRadius={17}
-            backgroundColor={
-              isNow ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.18)"
-            }
+            width={30}
+            height={30}
+            borderRadius={15}
+            backgroundColor={Colors.bgMuted}
             alignItems="center"
             justifyContent="center"
             onPress={nextMonth}
             disabled={isNow}
           >
             <ChevronRightIcon
-              size={16}
-              color={isNow ? "rgba(255,255,255,0.3)" : "#fff"}
+              size={14}
+              color={isNow ? Colors.border : Colors.textMuted}
               strokeWidth={2.5}
             />
           </StyledPressable>
         </Stack>
-      </StyledCard>
-    </Stack>
-  );
-}
-
-// ─── Summary cards ────────────────────────────────────────────────────────────
-function SummaryCard({
-  label,
-  amount,
-  symbol,
-  color,
-  lightColor,
-  bgColor,
-  up,
-}: {
-  label: string;
-  amount: number;
-  symbol: string;
-  color: string;
-  lightColor: string;
-  bgColor: string;
-  up: boolean;
-}) {
-  const Colors = useColors();
-  return (
-    <StyledCard
-      flex={1}
-      borderRadius={18}
-      padding={16}
-      backgroundColor={Colors.bgCard}
-    >
-      <Stack
-        horizontal
-        alignItems="center"
-        gap={8}
-        justifyContent="space-between"
-      >
-        <Text variant="label" color={color}>
-          {label}
-        </Text>
-        <Sparkline color={color} bgColor={bgColor} up={up} />
       </Stack>
-      <Text
-        fontSize={17}
-        fontWeight="800"
-        color={Colors.textPrimary}
-        letterSpacing={-0.5}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
-        {formatCurrency(amount, symbol)}
-      </Text>
-    </StyledCard>
-  );
-}
 
-function MonthlySummary({
-  income,
-  expense,
-  symbol,
-}: {
-  income: number;
-  expense: number;
-  symbol: string;
-}) {
-  const Colors = useColors();
-  return (
-    <Stack
-      horizontal
-      gap={12}
-      paddingHorizontal={20}
-      paddingTop={8}
-      paddingBottom={8}
-    >
-      <SummaryCard
-        label="Expense"
-        amount={expense}
-        symbol={symbol}
-        color={Colors.expense}
-        lightColor={Colors.expenseLight}
-        bgColor={Colors.bgCard}
-        up={true}
-      />
-      <SummaryCard
-        label="Income"
-        amount={income}
-        symbol={symbol}
-        color={Colors.income}
-        lightColor={Colors.incomeLight}
-        bgColor={Colors.bgCard}
-        up={false}
-      />
+      {/* Main chart card */}
+      <StyledCard
+        borderRadius={24}
+        padding={20}
+        backgroundColor={Colors.bgCard}
+        shadow="light"
+      >
+        {/* Total balance header */}
+        <Stack marginBottom={4}>
+          <Text fontSize={13} fontWeight="600" color={Colors.textMuted}>
+            Total Balance
+          </Text>
+          <Text
+             variant="amountSmall"
+            fontSize={30}
+            fontWeight="800"
+            color={Colors.textPrimary}
+            letterSpacing={-1}
+            marginTop={2}
+          >
+            {formatCurrency(totalBalance, symbol)}
+          </Text>
+        </Stack>
+
+        {/* Interactive chart */}
+        <Stack alignItems="center" justifyContent="center">
+          <SpendChart data={chartData} symbol={symbol} />
+        </Stack>
+
+        {/* Income + Expense summary row — FIX: values from live props */}
+        <Stack horizontal gap={10} marginTop={4}>
+          <Stack
+            flex={1}
+            paddingVertical={12}
+            paddingHorizontal={14}
+            borderRadius={16}
+            backgroundColor={Colors.bg}
+            gap={4}
+          >
+            <Stack
+              horizontal
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Text fontSize={12} fontWeight="600" color={Colors.textMuted}>
+                Income
+              </Text>
+              <Text fontSize={13} color={Colors.income}>
+                ↗
+              </Text>
+            </Stack>
+            <Text
+            
+              fontSize={17}
+              fontWeight="800"
+              color={Colors.textPrimary}
+              letterSpacing={-0.5}
+            >
+              {formatCurrency(totalIncome, symbol)}
+            </Text>
+          </Stack>
+          <Stack
+            flex={1}
+            paddingVertical={12}
+            paddingHorizontal={14}
+            borderRadius={16}
+            backgroundColor={Colors.bg}
+            gap={4}
+          >
+            <Stack
+              horizontal
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Text fontSize={12} fontWeight="600" color={Colors.textMuted}>
+                Expense
+              </Text>
+              <Text fontSize={13} color={Colors.expense}>
+                ↘
+              </Text>
+            </Stack>
+            <Text
+              fontSize={17}
+              fontWeight="800"
+              color={Colors.textPrimary}
+              letterSpacing={-0.5}
+            >
+              {formatCurrency(totalExpense, symbol)}
+            </Text>
+          </Stack>
+        </Stack>
+      </StyledCard>
     </Stack>
   );
 }
@@ -295,11 +497,11 @@ function TransactionRow({
           </Text>
           <Stack horizontal alignItems="center" gap={4}>
             {tx.accountName && (
-              <Text variant="bodySmall" color={Colors.textMuted}>
+              <Text fontSize={12} color={Colors.textMuted}>
                 {tx.accountName}
               </Text>
             )}
-            <Text variant="bodySmall" color={Colors.textMuted}>
+            <Text fontSize={12} color={Colors.textMuted}>
               · {formatTime(new Date(tx.date))}
             </Text>
           </Stack>
@@ -318,6 +520,7 @@ export default function RecordsScreen() {
   const Colors = useColors();
   const { data: settingsData } = useSettings();
   const symbol = settingsData?.currencySymbol ?? "$";
+  // FIX: destructure totalIncome + totalExpense for live tile values
   const {
     data,
     loading,
@@ -382,31 +585,34 @@ export default function RecordsScreen() {
   return (
     <StyledPage backgroundColor={Colors.bg}>
       <Stack flex={1}>
-        <HomeHeader symbol={symbol} />
-        <MonthlySummary
-          income={totalIncome}
-          expense={totalExpense}
+        {/* FIX: pass live totals into header */}
+        <HomeHeader
           symbol={symbol}
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
         />
+
         <Stack
           horizontal
           alignItems="center"
           justifyContent="space-between"
           paddingHorizontal={20}
           paddingTop={8}
+          marginHorizontal={8}
         >
           <Text
-            variant="label"
+          variant="label"
             fontSize={17}
+            fontWeight="800"
             color={Colors.textMuted}
-            letterSpacing={-0.3}
+           
           >
             Transactions
           </Text>
           <StyledPressable
             onPress={() => router.push("/all-transactions" as any)}
           >
-            <Text variant="label" fontSize={13} color={Colors.textMuted}>
+            <Text fontSize={13} fontWeight="600" color={Colors.primary}>
               See All →
             </Text>
           </StyledPressable>
@@ -424,7 +630,7 @@ export default function RecordsScreen() {
           <SectionList
             sections={sections}
             keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 120 }}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -440,7 +646,8 @@ export default function RecordsScreen() {
                 paddingBottom={6}
               >
                 <Text
-                  variant="overline"
+                  fontSize={11}
+                  fontWeight="700"
                   color={Colors.textMuted}
                   letterSpacing={1.2}
                 >
@@ -481,7 +688,14 @@ export default function RecordsScreen() {
                 </StyledCard>
               );
             }}
-            ItemSeparatorComponent={RowDivider}
+            ItemSeparatorComponent={() => (
+              <StyledDivider
+                borderBottomColor={Colors.border}
+                marginLeft={80}
+                marginHorizontal={16}
+                opacity={0.6}
+              />
+            )}
             ListEmptyComponent={
               <StyledEmptyState
                 variant="minimal"
@@ -497,7 +711,7 @@ export default function RecordsScreen() {
         <StyledPressable
           position="absolute"
           right={20}
-          bottom={8}
+          bottom={100}
           width={58}
           height={58}
           borderRadius={29}
@@ -505,6 +719,13 @@ export default function RecordsScreen() {
           alignItems="center"
           justifyContent="center"
           onPress={() => router.push("/add-transaction" as any)}
+          style={{
+            shadowColor: Colors.primaryDark,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+            elevation: 10,
+          }}
         >
           <AddIcon size={26} color="#fff" strokeWidth={2.5} />
         </StyledPressable>

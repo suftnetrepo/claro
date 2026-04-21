@@ -1,17 +1,19 @@
 import React from 'react'
 import { router } from 'expo-router'
 import {
-  Stack, StyledText, StyledPressable, StyledScrollView, StyledCard,
+  Stack, StyledPressable, StyledScrollView, StyledCard,
   StyledSkeleton, StyledEmptyState, StyledDivider, StyledPage, StyledHeader,
 } from 'fluent-styles'
 import { dialogueService, toastService } from 'fluent-styles'
 import { IconCircle } from '../../icons/map'
 import { AddIcon, ChevronLeftIcon, DeleteIcon } from '../../icons'
+import { Text, RowDivider } from '../../components'
 import { useColors } from '../../constants'
 import { usePremium } from '../../hooks/usePremium'
 import { PremiumBanner } from '../premium/PremiumGate'
 import { useAccounts, useSettings } from '../../hooks'
 import { formatCurrency } from '../../utils'
+
 
 export default function AccountsScreen() {
   const Colors  = useColors()
@@ -33,17 +35,17 @@ export default function AccountsScreen() {
     <StyledPage backgroundColor={Colors.bg}>
       <StyledHeader.Full>
         {/* Header */}
-        <Stack backgroundColor={Colors.bg} paddingHorizontal={20} paddingTop={16} paddingBottom={14}>
+        <Stack backgroundColor={Colors.bg} paddingHorizontal={20} paddingBottom={14}>
           <Stack horizontal alignItems="center" justifyContent="space-between">
             <StyledPressable width={38} height={38} borderRadius={19}
               backgroundColor={Colors.bgCard} alignItems="center" justifyContent="center"
-              onPress={() => router.back()}
+              onPress={() => router.navigate("/(tabs)/settings")}
               style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
               <ChevronLeftIcon size={18} color={Colors.textPrimary} strokeWidth={2.5} />
             </StyledPressable>
-            <StyledText fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>
+            <Text variant='title' fontSize={17} fontWeight="800" color={Colors.textPrimary} letterSpacing={-0.3}>
               Accounts
-            </StyledText>
+            </Text>
             <Stack width={38} />
           </Stack>
         </Stack>
@@ -59,23 +61,23 @@ export default function AccountsScreen() {
             marginHorizontal={16} marginTop={8} marginBottom={16}
             borderRadius={22} padding={24} shadow="medium"
             backgroundColor={Colors.primary}>
-            <StyledText fontSize={13} fontWeight="600" color="rgba(255,255,255,0.7)" letterSpacing={0.3}>
+            <Text variant='label' fontSize={13} fontWeight="600" color="rgba(255,255,255,0.7)" letterSpacing={0.3}>
               Total Balance
-            </StyledText>
-            <StyledText fontSize={38} fontWeight="800" color="#fff" letterSpacing={-1.5} marginTop={6}>
+            </Text>
+            <Text variant='amount' fontSize={38} fontWeight="800" color="#fff" letterSpacing={-1.5} marginTop={6}>
               {formatCurrency(totalBalance, symbol)}
-            </StyledText>
-            <StyledText fontSize={12} color="rgba(255,255,255,0.6)" marginTop={6}>
+            </Text>
+            <Text variant='label' fontSize={12} color="rgba(255,255,255,0.6)" marginTop={6}>
               Across {accs.length} account{accs.length !== 1 ? 's' : ''}
-            </StyledText>
+            </Text>
           </StyledCard>
 
           {/* Account list */}
           {accs.length > 0 && (
             <Stack marginHorizontal={16} marginBottom={16} gap={0}>
               <Stack horizontal alignItems="center" justifyContent="space-between" marginBottom={10}>
-                <StyledText fontSize={15} fontWeight="800" color={Colors.textPrimary}>My Accounts</StyledText>
-                <StyledText fontSize={12} color={Colors.textMuted}>{accs.length} total</StyledText>
+                <Text fontSize={15} fontWeight="800" color={Colors.textPrimary}>My Accounts</Text>
+                <Text fontSize={12} color={Colors.textMuted}>{accs.length} total</Text>
               </Stack>
               <StyledCard borderRadius={18} backgroundColor={Colors.bgCard} shadow="light" overflow="hidden">
                 {accs.map((acc, i) => (
@@ -91,11 +93,11 @@ export default function AccountsScreen() {
                     >
                       <IconCircle iconKey={acc.icon} bg={acc.color} size={46} type="account" />
                       <Stack flex={1} gap={3} marginLeft={14}>
-                        <StyledText fontSize={15} fontWeight="700" color={Colors.textPrimary}>{acc.name}</StyledText>
-                        <StyledText fontSize={13} fontWeight="600"
+                        <Text fontSize={15} fontWeight="700" color={Colors.textPrimary}>{acc.name}</Text>
+                        <Text fontSize={13} fontWeight="600"
                           color={acc.balance >= 0 ? Colors.income : Colors.expense}>
                           {acc.balance >= 0 ? '+' : ''}{formatCurrency(acc.balance, symbol)}
-                        </StyledText>
+                        </Text>
                       </Stack>
                       {/* Delete button */}
                       <StyledPressable
@@ -108,7 +110,7 @@ export default function AccountsScreen() {
                       </StyledPressable>
                     </StyledPressable>
                     {i < accs.length - 1 && (
-                      <StyledDivider borderBottomColor={Colors.border} marginLeft={76} opacity={0.6} />
+                      <RowDivider />
                     )}
                   </Stack>
                 ))}
@@ -138,10 +140,10 @@ export default function AccountsScreen() {
               : undefined}
           >
             <AddIcon size={18} color={premium.canAddAccount((accs ?? []).length) ? '#fff' : Colors.textMuted} strokeWidth={2.5} />
-            <StyledText fontSize={14} fontWeight="700"
+            <Text fontSize={14} fontWeight="700"
               color={premium.canAddAccount((accs ?? []).length) ? '#fff' : Colors.textMuted}>
               {premium.canAddAccount((accs ?? []).length) ? 'Add New Account' : '🔒 Upgrade for More'}
-            </StyledText>
+            </Text>
           </StyledPressable>
 
         </StyledScrollView>

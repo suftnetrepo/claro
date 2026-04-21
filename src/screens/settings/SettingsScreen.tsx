@@ -26,6 +26,7 @@ import {
   CalendarIcon,
   CopyIcon,
   BellIcon,
+  LockOutIcon,
 } from "../../icons";
 import { useColors, CURRENCIES } from "../../constants";
 import { usePremium } from "../../hooks/usePremium";
@@ -377,7 +378,7 @@ export default function SettingsScreen() {
   return (
     <StyledPage flex={1} backgroundColor={Colors.bg}>
       <Stack flex={1}>
-        <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
+        <Stack paddingHorizontal={20} paddingBottom={4}>
           <Text
             variant="title"
             fontWeight="700"
@@ -388,7 +389,7 @@ export default function SettingsScreen() {
           </Text>
         </Stack>
 
-        <StyledScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+        <StyledScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
           {/* Premium banner */}
           <Stack marginHorizontal={16} marginTop={12} marginBottom={4}>
             {!premium.isPremium ? (

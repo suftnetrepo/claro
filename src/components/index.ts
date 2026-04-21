@@ -1,6 +1,8 @@
+
 export { Text } from './Text'
 export { ColorPicker } from './ColorPicker'
 export { IconPicker }  from './IconPicker'
 export { ModalHeader } from './ModalHeader'
 export { SwipeableRow } from './SwipeableRow'
 export { ClaroLogo } from './ClaroLogo'
+export { RowDivider } from './RowDivider'

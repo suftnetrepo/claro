@@ -38,12 +38,12 @@ function HomeHeader({ symbol }: { symbol: string }) {
     selectedMonth.getFullYear() === new Date().getFullYear();
 
   return (
-    <Stack paddingHorizontal={20} paddingTop={12} paddingBottom={8}>
+    <Stack paddingHorizontal={20} paddingBottom={8}>
       <Stack
         horizontal
         alignItems="center"
         justifyContent="space-between"
-        marginBottom={20}
+        marginBottom={8}
       >
         <Stack
           flex={1}

@@ -134,19 +134,20 @@ function BudgetRow({
               </Text>
             </Stack>
             <Stack
-              height={5}
+              height={3}
               borderRadius={3}
               backgroundColor={Colors.border}
               overflow="hidden"
             >
               <Stack
-                height={5}
+                height={3}
                 borderRadius={3}
                 width={`${pct}%` as any}
                 backgroundColor={barColor}
               />
             </Stack>
             <Text
+            variant="caption"
               fontSize={11}
               fontWeight="500"
               color={
@@ -214,7 +215,7 @@ export default function BudgetsScreen() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack flex={1}>
           {/* Header */}
-          <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
+          <Stack paddingHorizontal={20} paddingBottom={4}>
             <Text
               variant="title"
               fontWeight="700"

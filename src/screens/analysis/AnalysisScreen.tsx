@@ -1091,7 +1091,7 @@ export default function AnalysisScreen() {
   return (
     <StyledPage flex={1} backgroundColor={Colors.bg}>
       <Stack flex={1}>
-        <Stack paddingHorizontal={20} paddingTop={8} paddingBottom={4}>
+        <Stack paddingHorizontal={20} paddingBottom={4}>
           <Text
              variant="title"
     

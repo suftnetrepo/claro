@@ -107,7 +107,7 @@ export default function EditTransactionScreen() {
   }
 
   return (
-    <StyledPage flex={1} backgroundColor={Colors.bg}>
+    <StyledPage flex={1} backgroundColor={Colors.bg} >
       <StyledHeader.Full>
         <Stack backgroundColor={Colors.bg} paddingHorizontal={20}  >
           <Stack horizontal alignItems="center" justifyContent="space-between">

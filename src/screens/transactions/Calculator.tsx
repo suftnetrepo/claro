@@ -71,7 +71,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol,
                   flex={1}
                   height={66}
                   borderRadius={16}
-                  backgroundColor={isBackspace ? `${accent}18` : Colors.bgCard}
+                  backgroundColor={ Colors.bgCard}
                   alignItems="center"
                   justifyContent="center"
                   style={{
@@ -79,9 +79,9 @@ export const Calculator: React.FC<CalculatorProps> = ({ value, onChange, symbol,
                     shadowOffset: { width: 0, height: 1 }, elevation: 1,
                   }}>
                   {isBackspace ? (
-                    <BackspaceIcon size={22} color={accent} strokeWidth={2} />
+                    <BackspaceIcon size={22} color={Colors.textPrimary} strokeWidth={2} />
                   ) : (
-                    <Text variant="amountSmall" color={Colors.textPrimary}>{key}</Text>
+                    <Text variant="label" color={Colors.textPrimary}>{key}</Text>
                   )}
                 </StyledPressable>
               )

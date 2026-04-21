@@ -25,7 +25,7 @@ import { useColors } from "../../constants";
 import { useTransactions, useAccounts, useSettings } from "../../hooks";
 import { useRecordsStore } from "../../stores";
 import { formatCurrency, formatShortDate, formatTime } from "../../utils";
-import { SwipeableRow, ClaroLogo } from "../../components";
+import { SwipeableRow, ClaroLogo, RowDivider } from "../../components";
 import type { TransactionWithRefs } from "../../hooks";
 
 // ─── Header ───────────────────────────────────────────────────────────────────
@@ -101,6 +101,7 @@ function HomeHeader({ symbol }: { symbol: string }) {
           Total Balance
         </Text>
         <Text
+        variant="amount"
           fontSize={40}
           fontWeight="800"
           color="#fff"
@@ -312,22 +313,6 @@ function TransactionRow({
   );
 }
 
-function RowDivider() {
-  const Colors = useColors();
-  const width = useWindowDimensions().width;
-  return (
-    <Stack
-      horizontal
-      width={width - 66 - 16}
-      height={1}
-      flex={1}
-      backgroundColor={Colors.border}
-      marginLeft={66}
-      opacity={0.6}
-    />
-  );
-}
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function RecordsScreen() {
   const Colors = useColors();
@@ -512,7 +497,7 @@ export default function RecordsScreen() {
         <StyledPressable
           position="absolute"
           right={20}
-          bottom={100}
+          bottom={8}
           width={58}
           height={58}
           borderRadius={29}

@@ -83,28 +83,26 @@ export default function PremiumScreen() {
 
   return (
     <StyledPage flex={1} backgroundColor={Colors.bg}>
-      <Stack flex={1}>
-        {/* ── Close button — overlaid top right ───────────────────────── */}
-        <Stack
-          position="absolute" top={16} right={20}
-          zIndex={10}
-        >
-          <StyledPressable
-            width={32} height={32} borderRadius={16}
-            backgroundColor={Colors.bgMuted}
-            alignItems="center" justifyContent="center"
-            onPress={() => router.back()}
-          >
-            <CloseIcon size={16} color={Colors.textMuted} />
-          </StyledPressable>
-        </Stack>
+      <StyledPage.Header 
+      onBackPress={()=> router.navigate("/(tabs)/settings")}
+        backArrowProps={{
+          color: Colors.textPrimary
+        }}
+       showBackArrow marginHorizontal={16} shapeProps={{
+        backgroundColor : Colors.bgCard,
+        size            : 38,
+        borderRadius    : 19,
+        shadowColor     : '#000',
+      }}>
 
+      </StyledPage.Header>
+      <Stack flex={1}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
 
         {/* ── Compact hero — fits above fold ──────────────────────────── */}
         <Stack
           alignItems="center" paddingHorizontal={24}
-          paddingTop={20} paddingBottom={20}
+           paddingBottom={20}
         >
           <Stack flexDirection="row" alignItems="center" gap={10} marginBottom={6}>
             <Stack

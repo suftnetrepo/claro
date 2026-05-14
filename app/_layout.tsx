@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { Slot, Stack, router } from 'expo-router'
-import { GlobalPortalProvider, PortalManager } from 'fluent-styles'
-import * as SplashScreen from 'expo-splash-screen'
-import Purchases from 'react-native-purchases'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import React, { useEffect, useState } from "react";
+import { Slot, Stack, router } from "expo-router";
+import { GlobalPortalProvider, PortalManager } from "fluent-styles";
+import * as SplashScreen from "expo-splash-screen";
+import Purchases from "react-native-purchases";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   useFonts,
   PlusJakartaSans_400Regular,
@@ -11,24 +11,23 @@ import {
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
-} from '@expo-google-fonts/plus-jakarta-sans'
-import { runMigrations }   from '../src/db'
-import { seedDatabase }    from '../src/db/seed'
-import { isSetupComplete, isBiometricAvailable } from '../src/utils/security'
-import { getEntitlement } from '../src/services/premiumService'
-import { useAuthStore, useThemeStore, usePremiumStore } from '../src/stores'
-import { Colors }          from '../src/constants'
+} from "@expo-google-fonts/plus-jakarta-sans";
+import { runMigrations } from "../src/db";
+import { seedDatabase } from "../src/db/seed";
+import { isSetupComplete, isBiometricAvailable } from "../src/utils/security";
+import { getEntitlement } from "../src/services/premiumService";
+import { useAuthStore, useThemeStore, usePremiumStore } from "../src/stores";
 
 // Keep splash visible while bootstrapping
-SplashScreen.preventAutoHideAsync()
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [appReady,     setAppReady]     = useState(false)
-  const [initialRoute, setInitialRoute] = useState<string | null>(null)
+  const [appReady, setAppReady] = useState(false);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
-  const { setSetupComplete, setBiometricAvailable, setLocked } = useAuthStore()
-  const { loadTheme } = useThemeStore()
-  const { setEntitlement } = usePremiumStore()
+  const { setSetupComplete, setBiometricAvailable, setLocked } = useAuthStore();
+  const { loadTheme } = useThemeStore();
+  const { setEntitlement } = usePremiumStore();
 
   const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
@@ -36,7 +35,11 @@ export default function RootLayout() {
     PlusJakartaSans_600SemiBold,
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
-  })
+  });
+
+  const REVENUECAT_API_KEY = __DEV__
+    ? "test_YOUR_TEST_STORE_KEY"
+    : "appl_tAQddLTtbvecWtOVPOUcVpGDtyo";
 
   // Bootstrap: DB + auth state
   useEffect(() => {
@@ -45,75 +48,107 @@ export default function RootLayout() {
         // Initialize RevenueCat for premium entitlements
         try {
           await Purchases.configure({
-            apiKey: 'test_BPTAkjhaoloCncWLmXdahGGqQfo',
-            appUserID: undefined, // Anonymous user; RevenueCat generates an ID
-          })
+            apiKey: REVENUECAT_API_KEY,
+            appUserID: undefined,
+          });
         } catch (rcErr: any) {
           // RevenueCat might throw if already configured; this is safe to ignore
-          if (!rcErr?.message?.includes('already')) {
-            console.warn('[RevenueCat init]', rcErr?.message)
+          if (!rcErr?.message?.includes("already")) {
+            console.warn("[RevenueCat init]", rcErr?.message);
           }
         }
 
-        await loadTheme()
-        const entitlement = await getEntitlement()
-        setEntitlement(entitlement.isActive, entitlement.plan)
-        await runMigrations()
-        await seedDatabase()
-        const setupDone    = await isSetupComplete()
-        const bioAvailable = await isBiometricAvailable()
-        setSetupComplete(setupDone)
-        setBiometricAvailable(bioAvailable)
-        setInitialRoute(!setupDone ? '/(onboarding)/setup-pin' : '/(lock)')
-        if (setupDone) setLocked(true)
+        await loadTheme();
+        const entitlement = await getEntitlement();
+        setEntitlement(entitlement.isActive, entitlement.plan);
+        await runMigrations();
+        await seedDatabase();
+        const setupDone = await isSetupComplete();
+        const bioAvailable = await isBiometricAvailable();
+        setSetupComplete(setupDone);
+        setBiometricAvailable(bioAvailable);
+        setInitialRoute(!setupDone ? "/(onboarding)/setup-pin" : "/(lock)");
+        if (setupDone) setLocked(true);
       } catch (e) {
-        console.error('[Bootstrap]', e)
-        setInitialRoute('/(onboarding)/setup-pin')
+        console.error("[Bootstrap]", e);
+        setInitialRoute("/(onboarding)/setup-pin");
       } finally {
-        setAppReady(true)
+        setAppReady(true);
       }
-    }
-    bootstrap()
-  }, [])
+    };
+    bootstrap();
+  }, []);
 
   // Hide splash only when BOTH fonts and app data are ready
-  const isReady = appReady && (fontsLoaded || !!fontError)
+  const isReady = appReady && (fontsLoaded || !!fontError);
 
   useEffect(() => {
     if (isReady) {
-      SplashScreen.hideAsync()
+      SplashScreen.hideAsync();
     }
-  }, [isReady])
+  }, [isReady]);
 
   // Navigate to initial route once ready
   useEffect(() => {
     if (isReady && initialRoute) {
-      router.replace(initialRoute as any)
+      router.replace(initialRoute as any);
     }
-  }, [isReady, initialRoute])
+  }, [isReady, initialRoute]);
 
   // Don't render until fonts loaded — prevents FOUT
-  if (!isReady) return null
+  if (!isReady) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GlobalPortalProvider>
         <PortalManager>
-          <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: "slide_from_right",
+            }}
+          >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(lock)" options={{ headerShown: false }} />
-            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-            <Stack.Screen name="add-account" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="add-transaction" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="edit-transaction" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="set-budget" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="add-category" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="change-pin" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="premium" options={{ headerShown: false, animation: 'slide_from_right' }} />
-            <Stack.Screen name="all-transactions" options={{ headerShown: false, animation: 'slide_from_right' }} />
+            <Stack.Screen
+              name="(onboarding)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="add-account"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="add-transaction"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="edit-transaction"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="set-budget"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="add-category"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="change-pin"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="premium"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
+            <Stack.Screen
+              name="all-transactions"
+              options={{ headerShown: false, animation: "slide_from_right" }}
+            />
           </Stack>
         </PortalManager>
       </GlobalPortalProvider>
     </GestureHandlerRootView>
-  )
+  );
 }

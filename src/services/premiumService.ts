@@ -34,6 +34,17 @@ const getPlanFromProductId = (productId: string): PremiumPlan => {
   return 'monthly'
 }
 
+export async function getPremiumPrices() {
+  const offerings = await Purchases.getOfferings()
+  const current = offerings.current
+
+  return {
+    monthlyPrice: current?.monthly?.product.priceString ?? null,
+    yearlyPrice: current?.annual?.product.priceString ?? null,
+    lifetimePrice: current?.lifetime?.product.priceString ?? null,
+  }
+}
+
 // ─── Read entitlement from RevenueCat ─────────────────────────────────────────
 
 export const getEntitlement = async (): Promise<EntitlementInfo> => {

@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.claro.finance",
+      "bundleIdentifier": "com.suftnet.claro",
       "buildNumber": "1",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Claro uses Face ID to keep your finances secure.",
@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#22713F"
       },
-      "package": "com.claro.finance",
+      "package": "com.suftnet.claro",
       "versionCode": 1,
       "permissions": []
     },

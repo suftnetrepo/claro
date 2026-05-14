@@ -1,7 +1,7 @@
 import { create }          from 'zustand'
 import { subMonths, addMonths } from 'date-fns'
 import * as SecureStore     from 'expo-secure-store'
-import type { Account, Category, Transaction, Budget, Settings } from '../db/schema'
+import type { Settings } from '../db/schema'
 import type { ThemeKey }    from '../constants/themes'
 import type { PremiumPlan } from '../services/premiumService'
 

@@ -62,7 +62,7 @@ export const getEntitlement = async (): Promise<EntitlementInfo> => {
       isActive: true,
       plan,
       expiresAt: entitlement.expirationDate,
-      purchasedAt: new Date().toISOString(),
+      purchasedAt: entitlement.latestPurchaseDate ?? entitlement.originalPurchaseDate ?? null,
     }
   } catch (err: any) {
     console.error('[getEntitlement]', err?.message)

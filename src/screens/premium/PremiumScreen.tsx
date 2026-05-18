@@ -26,7 +26,7 @@ type PlanKey = "MONTHLY" | "YEARLY" | "ONE_TIME";
 
 const planColor = "#6366F1";
 
-const PRIVACY_POLICY_URL = "https://suftnet.com/claro/privacy-policy";
+const PRIVACY_POLICY_URL = "https://suftnetrepo.github.io/claro/privacy-policy.html";
 const TERMS_URL =
   "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
@@ -377,7 +377,7 @@ export default function PremiumScreen() {
 
             {selected === "YEARLY" && (
               <Text
-                variant="caption"
+                variant="subLabel"
                 color={Colors.textMuted}
                 textAlign="center"
                 lineHeight={18}
@@ -390,7 +390,7 @@ export default function PremiumScreen() {
 
             {selected === "MONTHLY" && (
               <Text
-                variant="caption"
+                variant="subLabel"
                 color={Colors.textMuted}
                 textAlign="center"
                 lineHeight={18}
@@ -402,7 +402,7 @@ export default function PremiumScreen() {
 
             {selected === "ONE_TIME" && (
               <Text
-                variant="caption"
+                variant="subLabel"
                 color={Colors.textMuted}
                 textAlign="center"
                 lineHeight={18}
@@ -432,7 +432,7 @@ export default function PremiumScreen() {
               </StyledPressable>
 
               <Text
-                variant="caption"
+                variant="subLabel"
                 color={Colors.textMuted}
                 textAlign="center"
                 lineHeight={16}
@@ -450,17 +450,17 @@ export default function PremiumScreen() {
                 <StyledPressable
                   onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
                 >
-                  <Text variant="caption" color={planColor}>
+                  <Text variant="subLabel" color={planColor}>
                     Privacy Policy
                   </Text>
                 </StyledPressable>
 
-                <Text variant="caption" color={Colors.textMuted}>
+                <Text variant="subLabel" color={Colors.textMuted}>
                   •
                 </Text>
 
                 <StyledPressable onPress={() => Linking.openURL(TERMS_URL)}>
-                  <Text variant="caption" color={planColor}>
+                  <Text variant="subLabel" color={planColor}>
                     Terms of Use
                   </Text>
                 </StyledPressable>

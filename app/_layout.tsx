@@ -37,10 +37,6 @@ export default function RootLayout() {
     PlusJakartaSans_800ExtraBold,
   });
 
-  const REVENUECAT_API_KEY = __DEV__
-    ? "test_YOUR_TEST_STORE_KEY"
-    : "appl_tAQddLTtbvecWtOVPOUcVpGDtyo";
-
   // Bootstrap: DB + auth state
   useEffect(() => {
     const bootstrap = async () => {
@@ -48,7 +44,7 @@ export default function RootLayout() {
         // Initialize RevenueCat for premium entitlements
         try {
           await Purchases.configure({
-            apiKey: REVENUECAT_API_KEY,
+            apiKey: 'appl_tAQddLTtbvecWtOVPOUcVpGDtyJ',
             appUserID: undefined,
           });
         } catch (rcErr: any) {

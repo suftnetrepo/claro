@@ -15,12 +15,13 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.suftnet.claro",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Claro uses Face ID to keep your finances secure.",
         "NSCameraUsageDescription": "Claro uses the camera to scan receipts.",
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "ZQADUF26X5"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,8 +29,11 @@
         "backgroundColor": "#22713F"
       },
       "package": "com.suftnet.claro",
-      "versionCode": 1,
-      "permissions": []
+      "versionCode": 2,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/icon.png"
@@ -49,9 +53,13 @@
       "typedRoutes": true
     },
     "extra": {
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "1884029f-59f0-4982-bc07-0bb076a2fcbc"
       }
-    }
+    },
+    "owner": "kcmkcms"
   }
 }

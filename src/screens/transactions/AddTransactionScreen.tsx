@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Keyboard } from 'react-native'
 import { router } from 'expo-router'
+import Svg, { Path, Circle } from 'react-native-svg'
 import {
   Stack, StyledPressable, StyledTextInput,
   StyledScrollView, StyledCard, StyledPage, StyledHeader,
@@ -17,6 +18,8 @@ import { Calculator } from './Calculator'
 import { AccountPicker } from './AccountPicker'
 import { CategoryPicker } from './CategoryPicker'
 import { StyledDatePicker, Popup } from 'fluent-styles'
+import { ReceiptScannerSheet } from '../../components/ReceiptScannerSheet'
+import { ReceiptExtraction } from '../../services/receiptService'
 
 type TxType = 'expense' | 'income' | 'transfer'
 
@@ -25,6 +28,18 @@ const TYPE_TABS = [
   { value: 'income'   as TxType, label: 'Income'   },
   { value: 'transfer' as TxType, label: 'Transfer' },
 ]
+
+function ScanReceiptIcon({ color, size = 18 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+        stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="13" r="4" stroke={color} strokeWidth="2" />
+    </Svg>
+  )
+}
 
 export default function AddTransactionScreen() {
   const Colors = useColors()
@@ -47,6 +62,7 @@ export default function AddTransactionScreen() {
   const [showToAccount, setShowToAccount] = useState(false)
   const [showCategory,  setShowCategory]  = useState(false)
   const [showDate,      setShowDate]      = useState(false)
+  const [showReceiptScanner, setShowReceiptScanner] = useState(false)
 
   const accentColor = txType === 'income' ? Colors.income : txType === 'transfer' ? Colors.transfer : Colors.expense
   const selectedAccount   = accounts.find(a => a.id === accountId)
@@ -71,6 +87,17 @@ export default function AddTransactionScreen() {
     finally { loaderService.hide(loadId) }
   }, [amount, accountId, toAccountId, txType, date, notes, categoryId, createTransaction, invalidateData])
 
+  const handleReceiptConfirm = useCallback((data: ReceiptExtraction) => {
+    setAmount(String(data.amount))
+    setNotes(data.merchant)
+    setDate(new Date(data.date))
+    setTxType(data.type)
+
+    const catList = data.type === 'income' ? incomeCats : expenseCats
+    const match = catList.find(c => c.name.toLowerCase() === data.suggestedCategory.toLowerCase())
+    setCategoryId(match ? match.id : null)
+  }, [expenseCats, incomeCats])
+
   return (
     <StyledPage backgroundColor={Colors.bg}>
       <StyledHeader.Full>
@@ -82,7 +109,11 @@ export default function AddTransactionScreen() {
               <ChevronLeftIcon size={18} color={Colors.textPrimary} strokeWidth={2.5} />
             </StyledPressable>
             <Text variant='title' fontWeight="700" color={Colors.textPrimary} letterSpacing={-0.3}>Add Transaction</Text>
-            <Stack width={38} />
+            <StyledPressable width={38} height={38} borderRadius={19} backgroundColor={Colors.primary + '18'}
+              alignItems="center" justifyContent="center" onPress={() => setShowReceiptScanner(true)}
+              style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}>
+              <ScanReceiptIcon color={Colors.primary} size={18} />
+            </StyledPressable>
           </Stack>
         </Stack>
       </StyledHeader.Full>
@@ -219,6 +250,12 @@ export default function AddTransactionScreen() {
         <AccountPicker visible={showAccount} accounts={accounts} selected={accountId} onSelect={a => setAccountId(a.id)} onClose={() => setShowAccount(false)} />
         <AccountPicker visible={showToAccount} accounts={accounts.filter(a => a.id !== accountId)} selected={toAccountId} onSelect={a => setToAccountId(a.id)} onClose={() => setShowToAccount(false)} />
         <CategoryPicker visible={showCategory} expenseCategories={expenseCats} incomeCategories={incomeCats} selected={categoryId} transactionType={txType === 'transfer' ? 'expense' : txType} onSelect={c => setCategoryId(c.id)} onClose={() => setShowCategory(false)} />
+
+        <ReceiptScannerSheet
+          visible={showReceiptScanner}
+          onClose={() => setShowReceiptScanner(false)}
+          onConfirm={handleReceiptConfirm}
+        />
       </Stack>
     </StyledPage>
   )

@@ -647,7 +647,7 @@ export default function SettingsScreen() {
                     <CalendarIcon
                       size={18}
                       color={
-                        premium.canExport() ? Colors.primary : Colors.textMuted
+                        premium.canExportCSV() ? Colors.primary : Colors.textMuted
                       }
                       strokeWidth={2}
                     />
@@ -656,11 +656,11 @@ export default function SettingsScreen() {
               }
               label="Export transactions"
               subtitle={exportingCSV ? "Exporting…" : undefined}
-              value={premium.canExport() ? "CSV" : "🔒 Premium"}
+              value={premium.canExportCSV() ? "CSV" : "🔒 Premium"}
               onPress={() =>
-                premium.canExport() && !exportingCSV
+                premium.canExportCSV() && !exportingCSV
                   ? handleExportCSV()
-                  : !premium.canExport()
+                  : !premium.canExportCSV()
                     ? router.push("/premium" as any)
                     : undefined
               }

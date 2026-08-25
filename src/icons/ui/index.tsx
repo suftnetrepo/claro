@@ -336,6 +336,35 @@ export const CopyIcon = createIcon(({ size, color, strokeWidth }) => (
   </Svg>
 ));
 
+// ─── Receipt ──────────────────────────────────────────────────────────────────
+export const ReceiptIcon = createIcon(({ size, color, strokeWidth }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M6 2h12a1 1 0 011 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 011-1z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line x1="8" y1="7" x2="16" y2="7" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    <Line x1="8" y1="11" x2="16" y2="11" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    <Line x1="8" y1="15" x2="13" y2="15" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+  </Svg>
+));
+
+// ─── Infinity ─────────────────────────────────────────────────────────────────
+export const InfinityIcon = createIcon(({ size, color, strokeWidth }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.739-8z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+));
+
 // ─── Settings / Gear ──────────────────────────────────────────────────────────
 export const SettingsIcon = createIcon(({ size, color, strokeWidth }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

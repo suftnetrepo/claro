@@ -201,8 +201,13 @@ export async function captureReceiptImage(
     mediaTypes: ["images"],
     quality: 1,
     base64: false,        // skip base64 at capture time — saves memory
-    allowsEditing: true,  // lets user crop/straighten before analysis
-    aspect: [3, 4],       // portrait receipt crop guide
+    // allowsEditing forces a handoff through iOS's separate crop UI bridge —
+    // a known real-device crash path with PHPickerViewController (default
+    // library picker on iOS 14+), especially with iCloud photos that need
+    // to download first. The simulator's local asset library never
+    // triggers that out-of-process handoff, which is why it never
+    // reproduced there. Not needed anyway — compression handles resizing.
+    allowsEditing: false,
     exif: false,
   };
 
@@ -407,14 +412,20 @@ export async function scanReceipt(
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Could not read this receipt.";
-    const isNetwork =
+    // iCloud-backed photos that haven't downloaded yet fail here too — the
+    // picker returns before the asset is local, so compression/upload can
+    // throw a network-shaped error that has nothing to do with the device
+    // being offline. Give that case its own message rather than the
+    // generic "no internet" one.
+    const isICloud =
+      message.toLowerCase().includes("icloud") ||
       message.toLowerCase().includes("network") ||
-      message.toLowerCase().includes("fetch");
+      message.toLowerCase().includes("download");
     return {
       success: false,
-      error: isNetwork ? "network_error" : "extraction_failed",
-      message: isNetwork
-        ? "No internet connection. Please try again."
+      error: isICloud ? "network_error" : "extraction_failed",
+      message: isICloud
+        ? "Photo still downloading from iCloud. Wait a moment and try again."
         : "Couldn't read that receipt clearly. Try better lighting or a flatter surface.",
     };
   }

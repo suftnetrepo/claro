@@ -17,3 +17,4 @@ export type { BudgetWithSpent }     from './useBudgets'
 export type { CategorySpending, AnalysisData, DailyTotal, MonthlyTotal } from './useAnalysis'
 
 export * from './usePremium'
+export * from './useReceiptScanLimit'

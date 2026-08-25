@@ -50,6 +50,9 @@ import {
 
 import { scanReceipt, ReceiptExtraction } from "../services/receiptService";
 import { useColors } from "../constants/useColors";
+import { useReceiptScanLimit, FREE_SCAN_LIMIT } from "../hooks/useReceiptScanLimit";
+import { usePremium } from "../hooks/usePremium";
+import { PremiumBanner } from "../screens/premium/PremiumGate";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -171,20 +174,37 @@ function DataRow({
 
 export function ReceiptScannerSheet({ visible, onClose, onConfirm }: Props) {
   const colors = useColors();
+  const { isPremium } = usePremium();
+  const { scansUsed, scansRemaining, limitReached, incrementCount, refresh: refreshScanLimit } = useReceiptScanLimit();
   const [state, setState] = useState<ViewState>("idle");
   const [extraction, setExtraction] = useState<ReceiptExtraction | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Reset when sheet opens
+  // Reset when sheet opens — backup path; the real reset is handleClose()
+  // below, fired directly from every dismissal (X, swipe, backdrop, confirm).
+  // Relying on this effect alone left the sheet showing stale review data
+  // on reopen when Popup's own close gestures didn't produce a clean
+  // false→true transition of `visible` for this effect to key off.
   useEffect(() => {
     if (visible) {
       setState("idle");
       setExtraction(null);
       setThumbnailUri(null);
       setErrorMessage("");
+      refreshScanLimit();
     }
-  }, [visible]);
+  }, [visible, refreshScanLimit]);
+
+  // Always reset local state before telling the parent to close — don't
+  // rely solely on the `visible`-watching effect above (see its comment).
+  const handleClose = useCallback(() => {
+    setState("idle");
+    setExtraction(null);
+    setThumbnailUri(null);
+    setErrorMessage("");
+    onClose();
+  }, [onClose]);
 
   const handleScan = useCallback(async (source: "camera" | "library") => {
     setState("scanning");
@@ -208,12 +228,13 @@ export function ReceiptScannerSheet({ visible, onClose, onConfirm }: Props) {
     setState("review");
   }, []);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     if (!extraction) return;
+    await incrementCount();
     onConfirm(extraction);
     toastService.success("Receipt imported — review and save");
-    onClose();
-  }, [extraction, onConfirm, onClose]);
+    handleClose();
+  }, [extraction, incrementCount, onConfirm, handleClose]);
 
   const handleRetry = useCallback(() => {
     setState("idle");
@@ -260,45 +281,67 @@ export function ReceiptScannerSheet({ visible, onClose, onConfirm }: Props) {
           Point your camera at any receipt and we'll fill in the details automatically.
         </StyledText>
 
-        {/* Primary: Camera */}
-        <StyledButton
-          primary
-          block
-          onPress={() => handleScan("camera")}
-          leftIcon={<CameraIcon color={colors.white} size={18} />}
-          style={{ marginBottom: 12 }}
-        >
-          <StyledButton.Text
-            color={colors.white}
-            fontSize={18}
-            fontWeight="600"
-          >
-            Open Camera
-          </StyledButton.Text>
-        </StyledButton>
+        {limitReached ? (
+          <Stack alignItems="stretch" style={{ width: "100%" }}>
+            <PremiumBanner
+              message="Free scan limit reached"
+              subtext={`You've used all ${FREE_SCAN_LIMIT} receipt scans this month`}
+            />
+          </Stack>
+        ) : (
+          <>
+            {/* Primary: Camera */}
+            <StyledButton
+              primary
+              block
+              onPress={() => handleScan("camera")}
+              leftIcon={<CameraIcon color={colors.white} size={18} />}
+              style={{ marginBottom: 12 }}
+            >
+              <StyledButton.Text
+                color={colors.white}
+                fontSize={18}
+                fontWeight="600"
+              >
+                Open Camera
+              </StyledButton.Text>
+            </StyledButton>
 
-        {/* Secondary: Library */}
-        <StyledButton
-          outline
-          block
-          onPress={() => handleScan("library")}
-          leftIcon={<GalleryIcon color={colors.textPrimary} size={16} />}
-          style={{ marginBottom: 24 }}
-        >
-          <StyledButton.Text
-            color={colors.textPrimary}
-            fontSize={18}
-          >
-            Choose from Library
-          </StyledButton.Text>
-        </StyledButton>
+            {/* Secondary: Library */}
+            <StyledButton
+              outline
+              block
+              onPress={() => handleScan("library")}
+              leftIcon={<GalleryIcon color={colors.textPrimary} size={16} />}
+              style={{ marginBottom: 12 }}
+            >
+              <StyledButton.Text
+                color={colors.textPrimary}
+                fontSize={18}
+              >
+                Choose from Library
+              </StyledButton.Text>
+            </StyledButton>
+
+            {!isPremium && scansUsed > 0 && (
+              <StyledText
+                fontSize={12}
+                color={colors.textMuted}
+                textAlign="center"
+                marginBottom={12}
+              >
+                {scansRemaining} scan{scansRemaining === 1 ? "" : "s"} left this month
+              </StyledText>
+            )}
+          </>
+        )}
 
         <StyledText
           fontSize={12}
           color={colors.textMuted}
           textAlign="center"
         >
-          🔒 Receipt images are sent to Claude for analysis and never stored.
+          🔒 Receipt images are sent to OpenAI for analysis and never stored.
         </StyledText>
       </Stack>
     </Animated.View>
@@ -564,7 +607,7 @@ export function ReceiptScannerSheet({ visible, onClose, onConfirm }: Props) {
   return (
     <Popup
       visible={visible}
-      onClose={canClose ? onClose : undefined}
+      onClose={canClose ? handleClose : undefined}
       closeOnPressOverlay={canClose}
       title={titleMap[state]}
       showClose={canClose}

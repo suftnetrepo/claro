@@ -20,6 +20,8 @@ import {
   SettingsTabIcon,
   CalendarIcon,
   BellIcon,
+  ReceiptIcon,
+  InfinityIcon,
 } from "../../icons";
 
 type PlanKey = "MONTHLY" | "YEARLY" | "ONE_TIME";
@@ -31,7 +33,12 @@ const TERMS_URL =
   "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
 const FeatureIcon: React.FC<{ index: number }> = ({ index }) => {
+  // Positional, matched 1:1 to PREMIUM_FEATURES order — PREMIUM_FEATURES.icon
+  // (an emoji string) isn't rendered here; this array is the actual source
+  // of the icon shown per feature, so it must stay in sync with reordering.
   const icons = [
+    <ReceiptIcon size={18} color={planColor} strokeWidth={2} />,
+    <InfinityIcon size={18} color={planColor} strokeWidth={2} />,
     <AccountsTabIcon size={18} color={planColor} strokeWidth={2} />,
     <BudgetsTabIcon size={18} color={planColor} strokeWidth={2} />,
     <BellIcon size={18} color={planColor} strokeWidth={2} />,

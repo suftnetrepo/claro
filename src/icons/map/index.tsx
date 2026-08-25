@@ -85,6 +85,12 @@ export const ACCOUNT_ICON_MAP: Record<string, IconEntry> = {
   investment_acc: { Component: InvestmentAccountIcon, defaultBg: AccountColors.investment_acc },
 }
 
+export const TRANSACTION_ICON_MAP: Record<string, IconEntry> = {
+  income:   { Component: IncomeArrowIcon,  defaultBg: '#1B5E20' },
+  expense:  { Component: ExpenseArrowIcon, defaultBg: '#B71C1C' },
+  transfer: { Component: TransferIcon,     defaultBg: '#0D47A1' },
+}
+
 export const ALL_CATEGORY_ICON_KEYS = Object.keys(CATEGORY_ICON_MAP)
 export const ALL_ACCOUNT_ICON_KEYS  = Object.keys(ACCOUNT_ICON_MAP)
 

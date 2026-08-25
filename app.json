@@ -2,7 +2,7 @@
   "expo": {
     "name": "Claro",
     "slug": "claro",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,10 +15,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.suftnet.claro",
-      "buildNumber": "2",
+      "buildNumber": "1",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Claro uses Face ID to keep your finances secure.",
         "NSCameraUsageDescription": "Claro uses the camera to scan receipts.",
+        "NSPhotoLibraryUsageDescription": "Claro needs access to your photo library to scan receipts.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "appleTeamId": "ZQADUF26X5"

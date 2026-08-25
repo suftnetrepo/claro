@@ -13,7 +13,12 @@ type IconRenderer = (
   rest:  Omit<IconProps, 'size' | 'color' | 'strokeWidth'>
 ) => React.ReactElement
 
-export function createIcon(render: IconRenderer) {
+// Same call signature as before ((props: IconProps) => React.ReactElement),
+// just with `displayName` declared as an assignable property — every icon
+// file already does `XIcon.displayName = 'XIcon'` after defining it.
+type IconComponent = ((props: IconProps) => React.ReactElement) & { displayName?: string }
+
+export function createIcon(render: IconRenderer): IconComponent {
   const Icon = ({
     size        = 24,
     color       = '#1A1A1A',

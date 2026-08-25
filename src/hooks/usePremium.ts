@@ -113,6 +113,7 @@ export function usePremium() {
     canAddCategory: (count: number) =>
       isPremium || count < FREE_LIMITS.CATEGORIES,
     canUseTheme: (key: string) => isPremium || key === "forest",
+    canExportCSV: () => true, // basic CSV export is free for all users
     canExport: () => isPremium,
     monthlyPrice: prices.monthlyPrice,
     yearlyPrice: prices.yearlyPrice,
